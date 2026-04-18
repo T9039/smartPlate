@@ -1,6 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Use the environment variable injected by AI Studio
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const model = "gemini-3-flash-preview";
 
@@ -34,7 +33,6 @@ export async function getRecipeSuggestions(ingredients: string[]) {
 }
 
 export async function getBehavioralNudge(wasteHistory: any[]) {
-    // wasteHistory is an array of { item_name, quantity, action, logged_at }
     const historyStr = wasteHistory.map(h => `${h.logged_at}: ${h.action} ${h.quantity} ${h.item_name}`).join("\n");
     
     const prompt = `Analyze this food waste history and provide 3 short, actionable behavioral nudges to help the user reduce waste.
