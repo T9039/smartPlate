@@ -1,0 +1,6 @@
+{
+  "name": "smartPlate",
+  "description": "Smart inventory management and AI-driven food waste reduction with recipe suggestions and behavioral nudges.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
