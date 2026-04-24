@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-const model = "gemini-3-flash-preview";
+const model = "gemini-2.0-flash";
 
 export async function getRecipeSuggestions(ingredients: string[]) {
     const prompt = `Based on these ingredients that are expiring soon: ${ingredients.join(", ")}, 
