@@ -1,0 +1,8 @@
+{
+  "expo": {
+    "name": "FoodWasteReducer",
+    "slug": "food-waste-reducer",
+    "version": "1.0.0",
+    "platforms": ["android", "ios"]
+  }
+}

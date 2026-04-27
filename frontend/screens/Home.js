@@ -1,0 +1,241 @@
+import React, { useState, useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppContext, useColors } from '../context/AppContext';
+import { mockNotifications } from '../data/mockData';
+import StatCard from '../components/StatCard';
+import ActionCard from '../components/ActionCard';
+import InsightCard from '../components/InsightCard';
+import { SPACING, RADIUS, SHADOW } from '../styles/theme';
+
+export default function HomeScreen({ navigation }) {
+  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests } = useAppContext();
+  const C = useColors();
+  const styles = useMemo(() => makeStyles(C), [C]);
+  const insets = useSafeAreaInsets();
+  const [notifVisible, setNotifVisible] = useState(false);
+
+  const expiringSoonCount = inventory.filter((i) => i.expiringSoon).length;
+  const expiringSoonValue = inventory.filter((i) => i.expiringSoon).reduce((sum, i) => sum + (i.price || 0), 0);
+  const insightMessage = expiringSoonCount > 0
+    ? `You might waste ${expiringSoonCount} item${expiringSoonCount > 1 ? 's' : ''} worth R${expiringSoonValue.toFixed(0)} this week`
+    : 'Your inventory is looking great — no urgent items this week!';
+
+  const pendingRequestCount = incomingRequests.filter((r) => r.status === 'pending').length;
+  const maxItems = Math.max(...challengeTiers.map((t) => t.threshold), 9);
+  const progressPercent = Math.min((challengeItemsUsedToday / maxItems) * 100, 100);
+  const nextTier = challengeTiers.find((t) => !unlockedRewards.includes(t.reward));
+  const nextTierText = nextTier
+    ? `Use ${Math.max(nextTier.threshold - challengeItemsUsedToday, 0)} more to unlock ${nextTier.label}`
+    : 'All rewards unlocked! 🎉';
+
+  const allNotifications = [
+    ...incomingRequests.filter((r) => r.status === 'pending').map((r) => ({
+      id: r.id, title: `Item Request from ${r.fromUser}`,
+      message: `They want "${r.requestedItem}" from your donation hamper.`, time: 'Today', type: 'request',
+    })),
+    ...mockNotifications,
+  ];
+
+  return (
+    <View style={[styles.flex, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Hi, {user.name.split(' ')[0]} 👋</Text>
+          <Text style={styles.subGreeting}>Here's your food waste summary</Text>
+        </View>
+        <TouchableOpacity style={styles.bellBtn} onPress={() => setNotifVisible(true)} activeOpacity={0.7}>
+          <Text style={styles.bellIcon}>🔔</Text>
+          {allNotifications.length > 0 && <View style={styles.notifDot} />}
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        {/* Impact card */}
+        <View style={styles.impactCard}>
+          <Text style={styles.impactTitle}>Your impact this month</Text>
+          <View style={styles.statsRow}>
+            <StatCard emoji="🥗" value={impact.itemsSaved} label="Items Saved" accent={C.primaryLight} />
+            <StatCard emoji="💰" value={`R${impact.moneySaved.toFixed(0)}`} label="Money Saved" accent={C.sage} />
+            <StatCard emoji="🤝" value={impact.donationsMade} label="Donations" accent={C.warning} />
+          </View>
+        </View>
+
+        {/* Use It Up Challenge */}
+        <View style={styles.challengeCard}>
+          <View style={styles.challengeHeaderRow}>
+            <Text style={styles.challengeTitle}>🔥 Use It Up Challenge</Text>
+            <Text style={styles.challengeCount}>{challengeItemsUsedToday}/{maxItems}</Text>
+          </View>
+          <Text style={styles.challengeSubtitle}>{nextTierText}</Text>
+          <View style={styles.progressBarTrack}>
+            <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+          </View>
+          <View style={styles.tiersRow}>
+            {challengeTiers.map((tier) => {
+              const isUnlocked = unlockedRewards.includes(tier.reward);
+              return (
+                <View key={tier.reward} style={[styles.tierBadge, isUnlocked && styles.tierBadgeUnlocked]}>
+                  <Text style={styles.tierEmoji}>{isUnlocked ? tier.emoji : '🔒'}</Text>
+                  <Text style={[styles.tierLabel, isUnlocked && styles.tierLabelUnlocked]}>{tier.label}</Text>
+                  <Text style={styles.tierThreshold}>{tier.threshold} items</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Quick actions */}
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionsRow}>
+          <ActionCard emoji="🥦" title="Add Food to Inventory" subtitle="Track what you have" onPress={() => navigation.navigate('AddFood')} accent={C.primaryMed} />
+          <View style={{ width: SPACING.sm }} />
+          <ActionCard emoji="🤝" title="Donate Food" subtitle="Help your community" onPress={() => navigation.navigate('Donations')} accent={C.primary} />
+        </View>
+
+        {/* AI Insights */}
+        <View style={{ marginBottom: SPACING.lg }}>
+          <Text style={styles.sectionTitle}>AI Insights</Text>
+          <InsightCard message={insightMessage} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
+        </View>
+
+        {/* Expiring alert */}
+        {expiringSoonCount > 0 && (
+          <View style={styles.alertBanner}>
+            <Text style={styles.alertEmoji}>⚠️</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.alertTitle}>Expiring Soon</Text>
+              <Text style={styles.alertMsg}>{expiringSoonCount} item{expiringSoonCount > 1 ? 's are' : ' is'} expiring within 5 days</Text>
+            </View>
+            <TouchableOpacity style={styles.alertBtn} onPress={() => navigation.navigate('Inventory')} activeOpacity={0.7}>
+              <Text style={styles.alertBtnText}>View</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Incoming requests banner */}
+        {pendingRequestCount > 0 && (
+          <TouchableOpacity style={styles.requestBanner} onPress={() => navigation.navigate('Donations')} activeOpacity={0.8}>
+            <Text style={styles.alertEmoji}>📬</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.alertTitle, { color: C.primaryMed }]}>Item Requests</Text>
+              <Text style={styles.alertMsg}>{pendingRequestCount} neighbour{pendingRequestCount > 1 ? 's are' : ' is'} requesting items from your hamper</Text>
+            </View>
+            <View style={[styles.alertBtn, { backgroundColor: C.primaryMed }]}>
+              <Text style={styles.alertBtnText}>View</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+
+      {/* Notifications modal */}
+      <Modal visible={notifVisible} animationType="slide" transparent onRequestClose={() => setNotifVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.notifSheet}>
+            <View style={styles.notifHeader}>
+              <Text style={styles.notifTitle}>Notifications</Text>
+              <TouchableOpacity onPress={() => setNotifVisible(false)}>
+                <Text style={styles.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={allNotifications}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.notifItem}>
+                  <Text style={styles.notifEmoji}>
+                    {item.type === 'warning' ? '⚠️' : item.type === 'success' ? '✅' : item.type === 'request' ? '📬' : 'ℹ️'}
+                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.notifItemTitle}>{item.title}</Text>
+                    <Text style={styles.notifItemMsg}>{item.message}</Text>
+                    <Text style={styles.notifItemTime}>{item.time}</Text>
+                  </View>
+                </View>
+              )}
+              ItemSeparatorComponent={() => <View style={styles.notifSep} />}
+            />
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const makeStyles = (C) => StyleSheet.create({
+  flex: { flex: 1, backgroundColor: C.background },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md,
+    borderBottomWidth: 1, borderBottomColor: C.divider, backgroundColor: C.background,
+  },
+  greeting: { fontSize: 22, fontWeight: '800', color: C.textDark },
+  subGreeting: { fontSize: 13, color: C.textLight, marginTop: 2 },
+  bellBtn: {
+    position: 'relative', width: 44, height: 44, borderRadius: 22,
+    backgroundColor: C.paleGreen, alignItems: 'center', justifyContent: 'center',
+  },
+  bellIcon: { fontSize: 20 },
+  notifDot: {
+    position: 'absolute', top: 8, right: 8, width: 8, height: 8, borderRadius: 4,
+    backgroundColor: C.warning, borderWidth: 1.5, borderColor: C.background,
+  },
+  scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
+  impactCard: {
+    backgroundColor: C.surface, borderRadius: RADIUS.xl, padding: SPACING.lg,
+    marginBottom: SPACING.lg, borderTopWidth: 4, borderTopColor: C.primaryMed, ...SHADOW.medium,
+  },
+  impactTitle: {
+    fontSize: 13, fontWeight: '700', color: C.textLight,
+    textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: SPACING.md,
+  },
+  statsRow: { flexDirection: 'row', gap: SPACING.sm },
+  challengeCard: {
+    backgroundColor: C.surface, borderRadius: RADIUS.xl, padding: SPACING.lg,
+    marginBottom: SPACING.lg, borderTopWidth: 4, borderTopColor: '#E67E22', ...SHADOW.medium,
+  },
+  challengeHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  challengeTitle: { fontSize: 15, fontWeight: '800', color: C.textDark },
+  challengeCount: { fontSize: 13, fontWeight: '700', color: '#E67E22' },
+  challengeSubtitle: { fontSize: 12, color: C.textLight, marginBottom: SPACING.sm },
+  progressBarTrack: { height: 8, backgroundColor: C.border, borderRadius: RADIUS.pill, marginBottom: SPACING.md, overflow: 'hidden' },
+  progressBarFill: { height: 8, backgroundColor: '#E67E22', borderRadius: RADIUS.pill },
+  tiersRow: { flexDirection: 'row', gap: SPACING.sm },
+  tierBadge: {
+    flex: 1, backgroundColor: C.card, borderRadius: RADIUS.md, padding: SPACING.sm,
+    alignItems: 'center', borderWidth: 1, borderColor: C.border,
+  },
+  tierBadgeUnlocked: { backgroundColor: '#FFF8F0', borderColor: '#E67E22' },
+  tierEmoji: { fontSize: 18, marginBottom: 4 },
+  tierLabel: { fontSize: 10, fontWeight: '600', color: C.textMuted, textAlign: 'center' },
+  tierLabelUnlocked: { color: '#E67E22' },
+  tierThreshold: { fontSize: 9, color: C.textMuted, marginTop: 2 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: C.textDark, marginBottom: SPACING.sm, marginTop: SPACING.xs },
+  actionsRow: { flexDirection: 'row', marginBottom: SPACING.lg },
+  alertBanner: {
+    backgroundColor: C.warningBg, borderRadius: RADIUS.lg, padding: SPACING.md,
+    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#FDDBB4',
+    gap: SPACING.sm, marginBottom: SPACING.sm,
+  },
+  requestBanner: {
+    backgroundColor: C.paleGreen, borderRadius: RADIUS.lg, padding: SPACING.md,
+    flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: C.sage,
+    gap: SPACING.sm, marginBottom: SPACING.sm,
+  },
+  alertEmoji: { fontSize: 22 },
+  alertTitle: { fontSize: 14, fontWeight: '700', color: C.warning },
+  alertMsg: { fontSize: 12, color: C.textMid, marginTop: 2 },
+  alertBtn: { backgroundColor: C.warning, borderRadius: RADIUS.sm, paddingHorizontal: 12, paddingVertical: 7 },
+  alertBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: C.overlay, justifyContent: 'flex-end' },
+  notifSheet: { backgroundColor: C.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '75%', ...SHADOW.strong },
+  notifHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: C.divider },
+  notifTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
+  closeBtn: { fontSize: 18, color: C.textLight },
+  notifItem: { flexDirection: 'row', padding: SPACING.md, gap: SPACING.md },
+  notifEmoji: { fontSize: 22, marginTop: 2 },
+  notifItemTitle: { fontSize: 14, fontWeight: '600', color: C.textDark },
+  notifItemMsg: { fontSize: 13, color: C.textLight, marginTop: 2, lineHeight: 18 },
+  notifItemTime: { fontSize: 11, color: C.textMuted, marginTop: 4 },
+  notifSep: { height: 1, backgroundColor: C.divider, marginLeft: SPACING.lg + 22 + SPACING.md },
+});

@@ -1,0 +1,302 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { useAppContext } from '../context/AppContext';
+import AppHeader from '../components/AppHeader';
+import PrimaryButton from '../components/PrimaryButton';
+import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
+
+const STATUS_CONFIG = {
+  expiring: {
+    label: 'Expiring Soon',
+    color: COLORS.warning,
+    bg: COLORS.warningBg,
+    icon: '⚠️',
+  },
+  'in-inventory': {
+    label: 'In Inventory',
+    color: COLORS.primaryMed,
+    bg: COLORS.paleGreen,
+    icon: '✅',
+  },
+  missing: {
+    label: 'Need to buy',
+    color: COLORS.textMuted,
+    bg: COLORS.divider,
+    icon: '○',
+  },
+};
+
+export default function RecipeDetailsScreen({ navigation, route }) {
+  const { recipe } = route.params;
+  const { markItemUsed } = useAppContext();
+
+  const matchColor =
+    recipe.matchPercent >= 85
+      ? COLORS.primaryMed
+      : recipe.matchPercent >= 70
+      ? COLORS.warning
+      : COLORS.textLight;
+
+  const handleCookedIt = () => {
+    Alert.alert(
+      '🎉 Great job!',
+      `You cooked "${recipe.title}"! Expiring ingredients have been marked as used.`,
+      [
+        {
+          text: 'Awesome!',
+          onPress: () => navigation.goBack(),
+        },
+      ]
+    );
+  };
+
+  return (
+    <View style={styles.flex}>
+      <AppHeader
+        title="Recipe Details"
+        onBack={() => navigation.goBack()}
+      />
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Hero image */}
+        <View style={styles.heroImage}>
+          <Text style={styles.heroEmoji}>{recipe.emoji || '🍽️'}</Text>
+        </View>
+
+        {/* Title and meta */}
+        <View style={styles.titleSection}>
+          <Text style={styles.recipeTitle}>{recipe.title}</Text>
+          <View style={styles.metaRow}>
+            <View style={styles.metaChip}>
+              <Text style={styles.metaText}>⏱  {recipe.time}</Text>
+            </View>
+            <View style={styles.metaChip}>
+              <Text style={styles.metaText}>📊  {recipe.difficulty}</Text>
+            </View>
+            <View style={[styles.metaChip, styles.matchChip, { borderColor: matchColor }]}>
+              <Text style={[styles.matchChipText, { color: matchColor }]}>
+                {recipe.matchPercent}% match
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Ingredients */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ingredients</Text>
+
+          {/* Legend */}
+          <View style={styles.legend}>
+            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+              <View key={key} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: cfg.color }]} />
+                <Text style={styles.legendText}>{cfg.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {recipe.ingredients.map((ing, index) => {
+            const cfg = STATUS_CONFIG[ing.status] || STATUS_CONFIG.missing;
+            return (
+              <View key={index} style={[styles.ingredientRow, { backgroundColor: cfg.bg }]}>
+                <Text style={styles.ingredientIcon}>{cfg.icon}</Text>
+                <Text style={styles.ingredientName}>{ing.name}</Text>
+                <View style={[styles.ingredientBadge, { backgroundColor: cfg.color }]}>
+                  <Text style={styles.ingredientBadgeText}>{cfg.label}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Steps */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Instructions</Text>
+          {recipe.steps.map((step, index) => (
+            <View key={index} style={styles.stepRow}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>{index + 1}</Text>
+              </View>
+              <Text style={styles.stepText}>{step}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Cooked it button */}
+        <View style={styles.cookedSection}>
+          <PrimaryButton
+            title="✓  Cooked It!"
+            onPress={handleCookedIt}
+            style={styles.cookedBtn}
+          />
+          <Text style={styles.cookedSubtext}>
+            This will mark expiring ingredients as used in your inventory
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1, backgroundColor: COLORS.background },
+  scroll: {
+    paddingBottom: SPACING.xxl,
+  },
+  heroImage: {
+    height: 220,
+    backgroundColor: COLORS.paleGreen,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  heroEmoji: { fontSize: 80 },
+  titleSection: {
+    padding: SPACING.lg,
+    paddingBottom: SPACING.sm,
+  },
+  recipeTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    lineHeight: 30,
+    marginBottom: SPACING.md,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  metaChip: {
+    backgroundColor: COLORS.divider,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  metaText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.textMid,
+  },
+  matchChip: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+  },
+  matchChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  section: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.sm,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginBottom: SPACING.md,
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 11,
+    color: COLORS.textLight,
+  },
+  ingredientRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.xs,
+    gap: SPACING.sm,
+  },
+  ingredientIcon: { fontSize: 16, width: 22 },
+  ingredientName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textDark,
+  },
+  ingredientBadge: {
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  ingredientBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
+    textTransform: 'uppercase',
+  },
+  stepRow: {
+    flexDirection: 'row',
+    marginBottom: SPACING.md,
+    gap: SPACING.md,
+    alignItems: 'flex-start',
+  },
+  stepNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.primaryMed,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  stepNumberText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  stepText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.textMid,
+    lineHeight: 22,
+  },
+  cookedSection: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+    alignItems: 'center',
+  },
+  cookedBtn: {
+    width: '100%',
+    backgroundColor: COLORS.primary,
+  },
+  cookedSubtext: {
+    marginTop: SPACING.sm,
+    fontSize: 12,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+  },
+});
