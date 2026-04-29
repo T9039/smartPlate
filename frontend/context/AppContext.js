@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api, setAuthToken } from '../lib/api';
 import {
   mockUser,
   mockInventory,
@@ -18,8 +19,8 @@ const AppContext = createContext(null);
 export function AppProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(mockUser);
-  const [inventory, setInventory] = useState(mockInventory);
-  const [donationHamper, setDonationHamper] = useState(mockDonationHamper);
+  const [inventory, setInventory] = useState([]);
+  const [donationHamper, setDonationHamper] = useState([]);
   const [impact, setImpact] = useState(mockImpact);
 
   // Challenge
@@ -37,33 +38,116 @@ export function AppProvider({ children }) {
   const [allInventoryEntries, setAllInventoryEntries] = useState(mockAllInventoryEntries);
   const [donationComplaints, setDonationComplaints] = useState(mockDonationComplaints);
 
-  // ─── Auth ──────────────────────────────────────────────────────────────────
-  const login = (name, role = 'home') => {
-    if (name) setUser((prev) => ({ ...prev, name, role }));
-    setIsAuthenticated(true);
+  // Initial Data Fetch
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadInitialData();
+    }
+  }, [isAuthenticated]);
+
+  const loadInitialData = async () => {
+    try {
+      const invData = await api.getInventory();
+      setInventory(invData);
+
+      const donData = await api.getDonations();
+      setDonationHamper(donData);
+
+      const analyticsData = await api.getAnalytics();
+      setImpact(prev => ({
+        ...prev,
+        itemsSaved: analyticsData.itemsSaved,
+        donationsMade: analyticsData.donationsMade
+      }));
+    } catch (e) {
+      console.warn("Failed to fetch data from API, using mock data for now.", e);
+      setInventory(mockInventory);
+      setDonationHamper(mockDonationHamper);
+    }
   };
 
-  const logout = () => setIsAuthenticated(false);
+  // ─── Auth ──────────────────────────────────────────────────────────────────
+  const login = async (email, password) => {
+    try {
+      // If no credentials, just use mock login (Demo user)
+      if (!email && !password) {
+        setUser((prev) => ({ ...prev, name: 'Demo User', role: 'home' }));
+        setIsAuthenticated(true);
+        return;
+      }
+
+      const res = await api.login(email, password);
+      setAuthToken(res.token);
+      setUser({ ...res.user, role: 'home', activeTheme: 'default' });
+      setIsAuthenticated(true);
+    } catch (e) {
+      console.error(e);
+      alert('Login failed');
+    }
+  };
+
+  const register = async (username, email, password) => {
+    try {
+      const res = await api.register(username, email, password);
+      setAuthToken(res.token);
+      setUser({ ...res.user, role: 'home', activeTheme: 'default' });
+      setIsAuthenticated(true);
+    } catch (e) {
+      console.error(e);
+      alert('Registration failed');
+    }
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setAuthToken(null);
+    setUser(null);
+  };
 
   // ─── Inventory ─────────────────────────────────────────────────────────────
-  const addToInventory = (item) => {
-    const newItem = {
-      ...item,
-      id: Date.now().toString(),
-      addedDate: new Date().toISOString().split('T')[0],
-      usedRecently: false,
-      donated: false,
-      emoji: item.emoji || '🥗',
-    };
-    setInventory((prev) => [newItem, ...prev]);
+  const addToInventory = async (item) => {
+    try {
+      const dbItem = {
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        unit: item.unit,
+        price: item.price || 0,
+        expiry_date: item.expiryDate,
+        added_date: new Date().toISOString().split('T')[0],
+        emoji: item.emoji || '🥗'
+      };
+      
+      const addedItem = await api.addInventoryItem(dbItem);
+      
+      setInventory((prev) => [{...dbItem, id: addedItem.id.toString(), usedRecently: false, donated: false}, ...prev]);
+    } catch (e) {
+      console.error('API Error adding inventory', e);
+      // Fallback local update
+      const newItem = {
+        ...item,
+        id: Date.now().toString(),
+        addedDate: new Date().toISOString().split('T')[0],
+        usedRecently: false,
+        donated: false,
+        emoji: item.emoji || '🥗',
+      };
+      setInventory((prev) => [newItem, ...prev]);
+    }
   };
 
-  const removeFromInventory = (id) => {
-    setInventory((prev) => prev.filter((i) => i.id !== id));
+  const removeFromInventory = async (id) => {
+    try {
+      await api.deleteInventoryItem(id);
+      setInventory((prev) => prev.filter((i) => i.id.toString() !== id.toString()));
+    } catch (e) {
+      console.error('API Error removing inventory', e);
+      setInventory((prev) => prev.filter((i) => i.id.toString() !== id.toString()));
+    }
   };
 
   // Mark item used: tracks challenge progress and removes from inventory
-  const markItemUsed = (id) => {
+  const markItemUsed = async (id) => {
     const newCount = challengeItemsUsedToday + 1;
     setChallengeItemsUsedToday(newCount);
 
@@ -74,27 +158,53 @@ export function AppProvider({ children }) {
       setUnlockedRewards((prev) => [...prev, ...newRewards]);
     }
 
+    try {
+      // Find the item first
+      const item = inventory.find(i => i.id.toString() === id.toString());
+      if (item) {
+        await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'consumed' });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     removeFromInventory(id);
     setImpact((prev) => ({ ...prev, itemsSaved: prev.itemsSaved + 1, moneySaved: prev.moneySaved + 20 }));
   };
 
   // ─── Donations ─────────────────────────────────────────────────────────────
-  const addToDonationHamper = (item) => {
+  const addToDonationHamper = async (item) => {
     if (donationHamper.find((d) => d.name === item.name)) return;
-    const donationItem = {
-      id: 'd' + Date.now(),
-      name: item.name,
-      quantity: `${item.quantity} ${item.unit || ''}`.trim(),
-      sourceType: item.sourceType || 'manual',
-      readyStatus: false,
-      emoji: item.emoji || '📦',
-    };
-    setDonationHamper((prev) => [...prev, donationItem]);
+    
+    try {
+      const dbDonation = {
+        name: item.name,
+        quantity: `${item.quantity} ${item.unit || ''}`.trim(),
+        source_type: item.sourceType || 'manual',
+        emoji: item.emoji || '📦'
+      };
+      const added = await api.addDonation(dbDonation);
+      setDonationHamper((prev) => [...prev, { ...dbDonation, id: added.id.toString(), readyStatus: false }]);
+    } catch (e) {
+      console.error(e);
+      // Fallback
+      const donationItem = {
+        id: 'd' + Date.now(),
+        name: item.name,
+        quantity: `${item.quantity} ${item.unit || ''}`.trim(),
+        sourceType: item.sourceType || 'manual',
+        readyStatus: false,
+        emoji: item.emoji || '📦',
+      };
+      setDonationHamper((prev) => [...prev, donationItem]);
+    }
+
     setImpact((prev) => ({ ...prev, donationsMade: prev.donationsMade + 1 }));
     if (item.id) removeFromInventory(item.id);
   };
 
-  const removeFromDonationHamper = (id) => {
+  const removeFromDonationHamper = async (id) => {
+    // We could add an api route for this, but for now just mock local if not implemented fully
     setDonationHamper((prev) => prev.filter((i) => i.id !== id));
   };
 
@@ -180,7 +290,7 @@ export function AppProvider({ children }) {
         challengeItemsUsedToday, unlockedRewards, activeTheme, challengeTiers,
         communityDropOffs, incomingRequests,
         allUsers, allInventoryEntries, donationComplaints,
-        login, logout,
+        login, register, logout,
         addToInventory, removeFromInventory, markItemUsed,
         addToDonationHamper, removeFromDonationHamper,
         updateUser, setActiveTheme,
