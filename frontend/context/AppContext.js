@@ -23,6 +23,11 @@ export function AppProvider({ children }) {
   const [donationHamper, setDonationHamper] = useState([]);
   const [impact, setImpact] = useState(mockImpact);
 
+  // AI & Notifications
+  const [recipes, setRecipes] = useState([]);
+  const [nudges, setNudges] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+
   // Challenge
   const [challengeItemsUsedToday, setChallengeItemsUsedToday] = useState(0);
   const [unlockedRewards, setUnlockedRewards] = useState([]);
@@ -59,6 +64,21 @@ export function AppProvider({ children }) {
         itemsSaved: analyticsData.itemsSaved,
         donationsMade: analyticsData.donationsMade
       }));
+
+      try {
+        const recipesData = await api.getRecipes();
+        setRecipes(recipesData);
+      } catch (e) { console.warn('Failed to fetch recipes', e); }
+
+      try {
+        const nudgesData = await api.getNudges();
+        setNudges(nudgesData);
+      } catch (e) { console.warn('Failed to fetch nudges', e); }
+
+      try {
+        const notifsData = await api.getNotifications();
+        setNotifications(notifsData);
+      } catch (e) { console.warn('Failed to fetch notifications', e); }
     } catch (e) {
       console.warn("Failed to fetch data from API, using mock data for now.", e);
       setInventory(mockInventory);
@@ -69,9 +89,13 @@ export function AppProvider({ children }) {
   // ─── Auth ──────────────────────────────────────────────────────────────────
   const login = async (email, password) => {
     try {
-      // If no credentials, just use mock login (Demo user)
       if (!email && !password) {
         setUser((prev) => ({ ...prev, name: 'Demo User', role: 'home' }));
+        setIsAuthenticated(true);
+        return;
+      }
+      if (email === 'admin_demo') {
+        setUser((prev) => ({ ...prev, name: 'Admin User', role: 'admin' }));
         setIsAuthenticated(true);
         return;
       }
@@ -204,8 +228,13 @@ export function AppProvider({ children }) {
   };
 
   const removeFromDonationHamper = async (id) => {
-    // We could add an api route for this, but for now just mock local if not implemented fully
-    setDonationHamper((prev) => prev.filter((i) => i.id !== id));
+    try {
+      await api.deleteDonation(id);
+      setDonationHamper((prev) => prev.filter((i) => i.id.toString() !== id.toString()));
+    } catch (e) {
+      console.error('API Error removing from donation hamper', e);
+      setDonationHamper((prev) => prev.filter((i) => i.id.toString() !== id.toString()));
+    }
   };
 
   // ─── User profile ──────────────────────────────────────────────────────────
@@ -287,6 +316,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider
       value={{
         isAuthenticated, user, inventory, donationHamper, impact,
+        recipes, nudges, notifications,
         challengeItemsUsedToday, unlockedRewards, activeTheme, challengeTiers,
         communityDropOffs, incomingRequests,
         allUsers, allInventoryEntries, donationComplaints,

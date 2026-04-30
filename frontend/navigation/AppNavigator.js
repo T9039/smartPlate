@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppContext } from '../context/AppContext';
 import { COLORS, SPACING } from '../styles/theme';
@@ -45,6 +46,10 @@ function TabIcon({ emoji, label, focused, activeColor, inactiveColor }) {
 
 function MainTabs() {
   const { activeTheme } = useAppContext();
+  const insets = useSafeAreaInsets();
+  
+  const bottomPadding = insets.bottom > 0 ? insets.bottom : 8;
+  const tabHeight = 60 + bottomPadding;
 
   const tabBarBg =
     activeTheme === 'eco' ? '#1B5E20' :
@@ -75,8 +80,8 @@ function MainTabs() {
           backgroundColor: tabBarBg,
           borderTopColor: tabBarBorder,
           borderTopWidth: 1,
-          height: 70,
-          paddingBottom: 8,
+          height: tabHeight,
+          paddingBottom: bottomPadding,
           paddingTop: 6,
         },
       }}
@@ -103,12 +108,17 @@ function MainTabs() {
 // ─── Admin tab bar ────────────────────────────────────────────────────────────
 
 function AdminTabs() {
+  const insets = useSafeAreaInsets();
+  
+  const bottomPadding = insets.bottom > 0 ? insets.bottom : 8;
+  const tabHeight = 60 + bottomPadding;
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.adminTabBar,
+        tabBarStyle: [styles.adminTabBar, { height: tabHeight, paddingBottom: bottomPadding }],
       }}
     >
       <Tab.Screen name="AdminDashboard" component={AdminDashboard}
@@ -168,8 +178,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1B4332',
     borderTopColor: '#163527',
     borderTopWidth: 1,
-    height: 70,
-    paddingBottom: 8,
     paddingTop: 6,
   },
 });

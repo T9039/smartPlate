@@ -19,8 +19,8 @@ export default function ProfileScreen() {
   const [aboutModal, setAboutModal] = useState(false);
   const [rewardsModal, setRewardsModal] = useState(false);
 
-  const [editName, setEditName] = useState(user.name);
-  const [editEmail, setEditEmail] = useState(user.email);
+  const [editName, setEditName] = useState(user?.name || user?.username || '');
+  const [editEmail, setEditEmail] = useState(user?.email || '');
   const [expiryAlerts, setExpiryAlerts] = useState(true);
   const [recipeAlerts, setRecipeAlerts] = useState(true);
   const [donationReminders, setDonationReminders] = useState(false);
@@ -41,7 +41,10 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const initials = user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+  if (!user) return null;
+  const displayName = user.name || user.username || 'User';
+  
+  const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
   const hasIcon = unlockedRewards.includes('icon');
 
   // Theme-aware avatar and chip colors
@@ -62,7 +65,7 @@ export default function ProfileScreen() {
           <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
             {hasIcon ? <Text style={styles.avatarEmoji}>🏅</Text> : <Text style={styles.avatarText}>{initials}</Text>}
           </View>
-          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userName}>{displayName}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
           <View style={styles.memberChip}>
             <Text style={styles.memberText}>{memberLabel}</Text>

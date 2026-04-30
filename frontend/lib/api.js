@@ -91,6 +91,15 @@ export const api = {
     return res.json();
   },
 
+  deleteDonation: async (id) => {
+    const res = await fetch(`${API_URL}/donations/${id}`, {
+      method: 'DELETE',
+      headers: defaultHeaders(),
+    });
+    if (!res.ok) throw new Error('Failed to delete donation');
+    return res.ok;
+  },
+
   // Analytics
   getAnalytics: async () => {
     const res = await fetch(`${API_URL}/analytics`, { headers: defaultHeaders() });
@@ -107,5 +116,24 @@ export const api = {
     });
     if (!res.ok) throw new Error('Failed to log waste action');
     return res.ok;
+  },
+
+  // AI & Notifications
+  getRecipes: async () => {
+    const res = await fetch(`${API_URL}/ai/recipes`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get recipes');
+    return res.json();
+  },
+  
+  getNudges: async () => {
+    const res = await fetch(`${API_URL}/ai/nudges`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get nudges');
+    return res.json();
+  },
+
+  getNotifications: async () => {
+    const res = await fetch(`${API_URL}/notifications`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get notifications');
+    return res.json();
   },
 };

@@ -15,6 +15,9 @@ export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const [notifVisible, setNotifVisible] = useState(false);
 
+  if (!user) return null;
+
+  const displayName = user.name || user.username || 'User';
   const expiringSoonCount = inventory.filter((i) => i.expiringSoon).length;
   const expiringSoonValue = inventory.filter((i) => i.expiringSoon).reduce((sum, i) => sum + (i.price || 0), 0);
   const insightMessage = expiringSoonCount > 0
@@ -41,7 +44,7 @@ export default function HomeScreen({ navigation }) {
     <View style={[styles.flex, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hi, {user.name.split(' ')[0]} 👋</Text>
+          <Text style={styles.greeting}>Hi, {displayName.split(' ')[0]} 👋</Text>
           <Text style={styles.subGreeting}>Here's your food waste summary</Text>
         </View>
         <TouchableOpacity style={styles.bellBtn} onPress={() => setNotifVisible(true)} activeOpacity={0.7}>

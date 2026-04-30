@@ -16,7 +16,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function SignUpScreen({ navigation }) {
-  const { login } = useAppContext();
+  const { register } = useAppContext();
   const insets = useSafeAreaInsets();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -40,7 +40,7 @@ export default function SignUpScreen({ navigation }) {
       Alert.alert('Passwords do not match', 'Please make sure your passwords match.');
       return;
     }
-    login(fullName.trim());
+    register(fullName.trim(), email.trim(), password);
   };
 
   return (

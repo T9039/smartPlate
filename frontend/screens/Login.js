@@ -31,18 +31,15 @@ export default function LoginScreen({ navigation }) {
       Alert.alert('Invalid email', 'Please enter a valid email address.');
       return;
     }
-    // Admin account: admin@smartplate.com / admin123
-    const isAdmin =
-      email.trim().toLowerCase() === 'admin@smartplate.com' && password === 'admin123';
-    login(isAdmin ? 'Admin User' : 'Alex Johnson', isAdmin ? 'admin' : 'home');
+    login(email.trim(), password);
   };
 
   const handleDemoLogin = () => {
-    login('Alex Johnson', 'home');
+    login(null, null);
   };
 
   const handleAdminDemo = () => {
-    login('Admin User', 'admin');
+    login('admin_demo', null);
   };
 
   return (
