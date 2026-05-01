@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
 import { useAlert } from '../../context/AlertContext';
+import { getValidIcon } from '../../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -14,10 +16,10 @@ const A = {
   border: '#E2E8F0', divider: '#EDF2F7',
 };
 
-function StatBox({ label, value, emoji, color }) {
+function StatBox({ label, value, icon, color }) {
   return (
     <View style={[styles.statBox, { borderTopColor: color }]}>
-      <Text style={styles.statBoxEmoji}>{emoji}</Text>
+      <Ionicons name={icon} size={24} color={color} style={{ marginBottom: SPACING.xs }} />
       <Text style={[styles.statBoxValue, { color }]}>{value}</Text>
       <Text style={styles.statBoxLabel}>{label}</Text>
     </View>
@@ -64,16 +66,16 @@ export default function AdminDashboard({ navigation }) {
         {/* Key stats */}
         <Text style={styles.sectionTitle}>Overview</Text>
         <View style={styles.statsGrid}>
-          <StatBox label="Total Users" value={allUsers.length} emoji="👥" color={A.primary} />
-          <StatBox label="Active Users" value={activeUsers} emoji="✅" color={A.success} />
-          <StatBox label="Food Saved" value={`${totalFoodSaved} kg`} emoji="🥗" color={A.primaryMed} />
-          <StatBox label="Donations" value={totalDonations} emoji="🤝" color={A.info} />
+          <StatBox label="Total Users" value={allUsers.length} icon="people-outline" color={A.primary} />
+          <StatBox label="Active Users" value={activeUsers} icon="checkmark-circle-outline" color={A.success} />
+          <StatBox label="Food Saved" value={`${totalFoodSaved} kg`} icon="leaf-outline" color={A.primaryMed} />
+          <StatBox label="Donations" value={totalDonations} icon="heart-outline" color={A.info} />
         </View>
 
         {/* Alert cards */}
         {flaggedEntries > 0 && (
           <TouchableOpacity style={styles.alertCard} onPress={() => navigation.navigate('AdminFoodMonitor')} activeOpacity={0.85}>
-            <Text style={styles.alertCardEmoji}>⚠️</Text>
+            <Ionicons name="warning-outline" size={24} color={A.warning} />
             <View style={{ flex: 1 }}>
               <Text style={styles.alertCardTitle}>Flagged Inventory Entries</Text>
               <Text style={styles.alertCardDesc}>{flaggedEntries} entr{flaggedEntries > 1 ? 'ies need' : 'y needs'} review — possible spam or non-food items</Text>
@@ -84,7 +86,7 @@ export default function AdminDashboard({ navigation }) {
 
         {openComplaints > 0 && (
           <TouchableOpacity style={styles.issueCard} onPress={() => navigation.navigate('AdminDonations')} activeOpacity={0.85}>
-            <Text style={styles.alertCardEmoji}>📩</Text>
+            <Ionicons name="mail-unread-outline" size={24} color={A.info} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.alertCardTitle, { color: A.info }]}>Open Complaints</Text>
               <Text style={styles.alertCardDesc}>{openComplaints} donation complaint{openComplaints > 1 ? 's' : ''} awaiting resolution</Text>
@@ -97,10 +99,10 @@ export default function AdminDashboard({ navigation }) {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
           {[
-            { label: 'Manage Users', emoji: '👥', screen: 'AdminUsers', color: A.primary },
-            { label: 'Food Monitor', emoji: '🗂️', screen: 'AdminFoodMonitor', color: A.warning },
-            { label: 'Donations', emoji: '🤝', screen: 'AdminDonations', color: A.info },
-            { label: 'Analytics', emoji: '📈', screen: 'AdminAnalytics', color: A.success },
+            { label: 'Manage Users', icon: 'people-outline', screen: 'AdminUsers', color: A.primary },
+            { label: 'Food Monitor', icon: 'folder-outline', screen: 'AdminFoodMonitor', color: A.warning },
+            { label: 'Donations', icon: 'heart-outline', screen: 'AdminDonations', color: A.info },
+            { label: 'Analytics', icon: 'stats-chart-outline', screen: 'AdminAnalytics', color: A.success },
           ].map((action) => (
             <TouchableOpacity
               key={action.label}
@@ -108,7 +110,7 @@ export default function AdminDashboard({ navigation }) {
               onPress={() => navigation.navigate(action.screen)}
               activeOpacity={0.85}
             >
-              <Text style={styles.actionEmoji}>{action.emoji}</Text>
+              <Ionicons name={action.icon} size={28} color={action.color} style={{ marginBottom: SPACING.xs }} />
               <Text style={[styles.actionLabel, { color: action.color }]}>{action.label}</Text>
             </TouchableOpacity>
           ))}
@@ -119,7 +121,7 @@ export default function AdminDashboard({ navigation }) {
         <View style={styles.card}>
           {recentEntries.map((entry, idx) => (
             <View key={entry.id} style={[styles.recentRow, idx < recentEntries.length - 1 && styles.recentRowBorder]}>
-              <Text style={styles.recentEmoji}>{entry.emoji}</Text>
+              <Ionicons name={getValidIcon(entry.emoji)} size={24} color={A.primaryMed} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.recentName}>{entry.name}</Text>
                 <Text style={styles.recentMeta}>{entry.userName} · {entry.addedDate}</Text>
@@ -158,7 +160,6 @@ const styles = StyleSheet.create({
     flex: 1, minWidth: '45%', backgroundColor: A.surface, borderRadius: RADIUS.lg,
     padding: SPACING.md, alignItems: 'center', borderTopWidth: 3, ...SHADOW.soft,
   },
-  statBoxEmoji: { fontSize: 24, marginBottom: SPACING.xs },
   statBoxValue: { fontSize: 22, fontWeight: '800', marginBottom: 2 },
   statBoxLabel: { fontSize: 11, color: A.textMuted, fontWeight: '500', textAlign: 'center' },
   alertCard: {
@@ -171,7 +172,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm,
     borderWidth: 1, borderColor: '#BEE3F8', ...SHADOW.soft,
   },
-  alertCardEmoji: { fontSize: 22 },
   alertCardTitle: { fontSize: 14, fontWeight: '700', color: A.warning },
   alertCardDesc: { fontSize: 12, color: A.textMid, marginTop: 2 },
   alertCardArrow: { fontSize: 18, color: A.textMuted, fontWeight: '700' },
@@ -180,12 +180,10 @@ const styles = StyleSheet.create({
     flex: 1, minWidth: '45%', backgroundColor: A.surface, borderRadius: RADIUS.lg,
     padding: SPACING.md, alignItems: 'center', borderTopWidth: 3, ...SHADOW.soft,
   },
-  actionEmoji: { fontSize: 28, marginBottom: SPACING.xs },
   actionLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   card: { backgroundColor: A.surface, borderRadius: RADIUS.lg, overflow: 'hidden', ...SHADOW.soft, marginBottom: SPACING.md },
   recentRow: { flexDirection: 'row', alignItems: 'center', padding: SPACING.md, gap: SPACING.sm },
   recentRowBorder: { borderBottomWidth: 1, borderBottomColor: A.divider },
-  recentEmoji: { fontSize: 22 },
   recentName: { fontSize: 14, fontWeight: '600', color: A.textDark },
   recentMeta: { fontSize: 12, color: A.textLight, marginTop: 2 },
   flaggedBadge: { backgroundColor: '#FFF0F0', borderRadius: RADIUS.sm, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#FECACA' },

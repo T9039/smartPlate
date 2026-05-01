@@ -6,9 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
-import { isExpiringSoon, getDaysUntilExpiry } from '../data/mockData';
+import { isExpiringSoon, getDaysUntilExpiry, getValidIcon } from '../data/mockData';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
 import Badge from '../components/Badge';
@@ -39,7 +40,7 @@ export default function AIInsightsDetailsScreen({ navigation }) {
 
       {expiringItems.length === 0 ? (
         <EmptyState
-          emoji="✅"
+          icon="checkmark-circle-outline"
           title="All clear!"
           message="No items are expiring soon. Your inventory is in great shape."
         />
@@ -47,7 +48,7 @@ export default function AIInsightsDetailsScreen({ navigation }) {
         <ScrollView contentContainerStyle={styles.scroll}>
           {/* Summary banner */}
           <View style={styles.summaryBanner}>
-            <Text style={styles.summaryEmoji}>🤖</Text>
+            <Ionicons name="bulb-outline" size={28} color="#fff" />
             <View style={styles.summaryText}>
               <Text style={styles.summaryTitle}>AI Waste Prediction</Text>
               <Text style={styles.summaryMsg}>
@@ -66,8 +67,8 @@ export default function AIInsightsDetailsScreen({ navigation }) {
             return (
               <View key={item.id} style={[styles.card, days <= 2 && styles.cardUrgent]}>
                 <View style={styles.cardTop}>
-                  <View style={[styles.imagePlaceholder, { backgroundColor: days <= 2 ? '#FFE5CC' : COLORS.paleGreen }]}>
-                    <Text style={styles.cardEmoji}>{item.emoji || '🥗'}</Text>
+                  <View style={styles.cardEmojiWrap}>
+                    <Ionicons name={getValidIcon(item.emoji)} size={24} color={COLORS.primaryMed} />
                   </View>
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardName}>{item.name}</Text>
@@ -97,14 +98,20 @@ export default function AIInsightsDetailsScreen({ navigation }) {
 
                 <View style={styles.cardActions}>
                   <TouchableOpacity style={styles.useBtn} onPress={handleUseUp} activeOpacity={0.7}>
-                    <Text style={styles.useBtnText}>🍳  Use Up in Recipe</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Ionicons name="restaurant-outline" size={16} color={COLORS.primaryMed} />
+                      <Text style={styles.useBtnText}>Use Up in Recipe</Text>
+                    </View>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.donateBtn}
                     onPress={() => handleDonate(item)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.donateBtnText}>🤝  Donate</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Ionicons name="heart-outline" size={16} color={COLORS.warning} />
+                      <Text style={styles.donateBtnText}>Donate</Text>
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -131,7 +138,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
     ...SHADOW.medium,
   },
-  summaryEmoji: { fontSize: 28, alignSelf: 'center' },
   summaryText: { flex: 1 },
   summaryTitle: {
     fontSize: 13,
@@ -168,14 +174,14 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
     marginBottom: SPACING.sm,
   },
-  imagePlaceholder: {
-    width: 72,
-    height: 72,
+  cardEmojiWrap: {
+    width: 60,
+    height: 60,
     borderRadius: RADIUS.md,
+    backgroundColor: COLORS.paleGreen,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardEmoji: { fontSize: 30 },
   cardInfo: { flex: 1, gap: 3 },
   cardName: {
     fontSize: 16,

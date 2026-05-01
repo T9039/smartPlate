@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
-import { getExpiryLabel, getDaysUntilExpiry } from '../data/mockData';
+import { getExpiryLabel, getDaysUntilExpiry, getValidIcon } from '../data/mockData';
 import Badge from './Badge';
 
 export default function InventoryItemCard({ item, onUseUp, onDonate }) {
@@ -14,9 +15,8 @@ export default function InventoryItemCard({ item, onUseUp, onDonate }) {
 
   return (
     <View style={[styles.card, expiring && styles.cardExpiring]}>
-      {/* Image placeholder */}
-      <View style={[styles.imagePlaceholder, { backgroundColor: expiring ? COLORS.warningBg : COLORS.paleGreen }]}>
-        <Text style={styles.emoji}>{item.emoji || '🥗'}</Text>
+      <View style={styles.iconWrap}>
+        <Ionicons name={getValidIcon(item.emoji)} size={24} color={COLORS.primary} />
       </View>
 
       <View style={styles.content}>
@@ -46,7 +46,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     flexDirection: 'row',
-    overflow: 'hidden',
+    alignItems: 'center',
+    padding: SPACING.md,
     marginBottom: SPACING.sm,
     ...SHADOW.soft,
   },
@@ -54,17 +55,17 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: COLORS.warning,
   },
-  imagePlaceholder: {
-    width: 80,
+  iconWrap: {
+    width: 50,
+    height: 50,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.paleGreen,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 30,
+    marginRight: SPACING.md,
   },
   content: {
     flex: 1,
-    padding: SPACING.md,
     gap: 4,
   },
   topRow: {

@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
 import { useAlert } from '../../context/AlertContext';
+import { getValidIcon } from '../../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -83,12 +85,14 @@ export default function AdminFoodMonitor() {
           filtered.map((entry) => (
             <View key={entry.id} style={[styles.entryCard, entry.flagged && styles.entryCardFlagged]}>
               <View style={styles.entryHeader}>
-                <Text style={styles.entryEmoji}>{entry.emoji}</Text>
+                <View style={styles.entryEmojiWrap}>
+                  <Ionicons name={getValidIcon(entry.emoji)} size={26} color={A.primaryMed} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.entryNameRow}>
                     <Text style={styles.entryName}>{entry.name}</Text>
                     {entry.flagged && (
-                      <View style={styles.flaggedBadge}><Text style={styles.flaggedBadgeText}>⚠️ Flagged</Text></View>
+                      <View style={styles.flaggedBadge}><Text style={styles.flaggedBadgeText}><Ionicons name="warning" size={12} /> Flagged</Text></View>
                     )}
                   </View>
                   <Text style={styles.entryMeta}>By {entry.userName} · {entry.category} · {entry.addedDate}</Text>
@@ -101,15 +105,15 @@ export default function AdminFoodMonitor() {
               <View style={styles.entryActions}>
                 {entry.flagged ? (
                   <TouchableOpacity style={styles.unflagBtn} onPress={() => adminUnflagEntry(entry.id)} activeOpacity={0.8}>
-                    <Text style={styles.unflagBtnText}>✅ Unflag</Text>
+                    <Text style={styles.unflagBtnText}><Ionicons name="checkmark-circle-outline" size={14} /> Unflag</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity style={styles.flagBtn} onPress={() => openFlagModal(entry)} activeOpacity={0.8}>
-                    <Text style={styles.flagBtnText}>⚠️ Flag</Text>
+                    <Text style={styles.flagBtnText}><Ionicons name="warning-outline" size={14} /> Flag</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(entry)} activeOpacity={0.8}>
-                  <Text style={styles.removeBtnText}>🗑️ Remove</Text>
+                  <Text style={styles.removeBtnText}><Ionicons name="trash-outline" size={14} /> Remove</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -138,7 +142,7 @@ export default function AdminFoodMonitor() {
                 numberOfLines={3}
               />
               <TouchableOpacity style={styles.confirmFlagBtn} onPress={handleFlag} activeOpacity={0.85}>
-                <Text style={styles.confirmFlagBtnText}>⚠️ Flag This Entry</Text>
+                <Text style={styles.confirmFlagBtnText}><Ionicons name="warning" size={16} color="#fff" /> Flag This Entry</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
   entryCard: { backgroundColor: A.surface, borderRadius: RADIUS.lg, marginBottom: SPACING.md, overflow: 'hidden', ...SHADOW.soft },
   entryCardFlagged: { borderLeftWidth: 4, borderLeftColor: A.danger },
   entryHeader: { flexDirection: 'row', alignItems: 'flex-start', padding: SPACING.md, gap: SPACING.md },
-  entryEmoji: { fontSize: 26, marginTop: 2 },
+  entryEmojiWrap: { marginRight: SPACING.md, marginTop: 2 },
   entryNameRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flexWrap: 'wrap' },
   entryName: { fontSize: 15, fontWeight: '700', color: A.textDark },
   entryMeta: { fontSize: 12, color: A.textLight, marginTop: 3 },

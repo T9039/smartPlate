@@ -1,8 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 
-export default function ActionCard({ emoji, title, subtitle, onPress, accent, style }) {
+export default function ActionCard({ icon, title, subtitle, onPress, accent, style }) {
   const bg = accent || COLORS.primaryMed;
   return (
     <TouchableOpacity
@@ -10,7 +11,9 @@ export default function ActionCard({ emoji, title, subtitle, onPress, accent, st
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <Text style={styles.emoji}>{emoji}</Text>
+      <View style={[styles.iconWrap, accent && { backgroundColor: `${accent}20` }]}>
+        <Ionicons name={icon || 'add-circle-outline'} size={24} color={'white'} />
+      </View>
       <Text style={styles.title}>{title}</Text>
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       <View style={styles.arrow}>
@@ -29,9 +32,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     ...SHADOW.medium,
   },
-  emoji: {
-    fontSize: 32,
-    marginBottom: SPACING.sm,
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+    alignSelf: 'flex-start'
   },
   title: {
     fontSize: 16,

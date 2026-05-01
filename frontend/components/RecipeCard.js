@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 
 export default function RecipeCard({ recipe, onPress }) {
@@ -13,8 +14,8 @@ export default function RecipeCard({ recipe, onPress }) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       {/* Image placeholder */}
-      <View style={styles.imagePlaceholder}>
-        <Text style={styles.emoji}>{recipe.emoji || '🍽️'}</Text>
+      <View style={styles.iconWrap}>
+        <Ionicons name={recipe.icon || 'restaurant-outline'} size={24} color={COLORS.primary} />
       </View>
 
       <View style={styles.content}>
@@ -42,19 +43,20 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
     flexDirection: 'row',
     ...SHADOW.soft,
+    alignItems: 'center',
+    padding: SPACING.sm,
   },
-  imagePlaceholder: {
-    width: 90,
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.md,
     backgroundColor: COLORS.paleGreen,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 34,
+    marginRight: SPACING.md,
   },
   content: {
     flex: 1,
-    padding: SPACING.md,
     gap: 4,
   },
   topRow: {

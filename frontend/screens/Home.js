@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import StatCard from '../components/StatCard';
 import ActionCard from '../components/ActionCard';
 import InsightCard from '../components/InsightCard';
+import { getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function HomeScreen({ navigation }) {
@@ -29,7 +31,7 @@ export default function HomeScreen({ navigation }) {
   const nextTier = challengeTiers.find((t) => !unlockedRewards.includes(t.reward));
   const nextTierText = nextTier
     ? `Use ${Math.max(nextTier.threshold - challengeItemsUsedToday, 0)} more to unlock ${nextTier.label}`
-    : 'All rewards unlocked! 🎉';
+    : 'All rewards unlocked!';
 
   const allNotifications = [
     ...(incomingRequests || []).filter((r) => r.status === 'pending').map((r) => ({
@@ -42,7 +44,6 @@ export default function HomeScreen({ navigation }) {
   const handleNotificationPress = (item) => {
     setNotifVisible(false);
     
-    // Determine target tab based on notification type or content
     let targetTab = 'Home';
     const title = item.title.toLowerCase();
     const message = item.message.toLowerCase();
@@ -59,11 +60,11 @@ export default function HomeScreen({ navigation }) {
     <View style={[styles.flex, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hi, {displayName.split(' ')[0]} 👋</Text>
+          <Text style={styles.greeting}>Hi, {displayName.split(' ')[0]}</Text>
           <Text style={styles.subGreeting}>Here's your food waste summary</Text>
         </View>
         <TouchableOpacity style={styles.bellBtn} onPress={() => setNotifVisible(true)} activeOpacity={0.7}>
-          <Text style={styles.bellIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" size={24} color={C.textDark} />
           {allNotifications.length > 0 && <View style={styles.notifDot} />}
         </TouchableOpacity>
       </View>
@@ -73,9 +74,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.impactCard}>
           <Text style={styles.impactTitle}>Your impact this month</Text>
           <View style={styles.statsRow}>
-            <StatCard emoji="🥗" value={impact.itemsSaved} label="Items Saved" accent={C.primaryLight} />
-            <StatCard emoji="💰" value={`R${impact.moneySaved.toFixed(0)}`} label="Money Saved" accent={C.sage} />
-            <StatCard emoji="🤝" value={impact.donationsMade} label="Donations" accent={C.warning} />
+            <StatCard icon="leaf-outline" value={impact.itemsSaved} label="Items Saved" accent={C.primaryLight} />
+            <StatCard icon="cash-outline" value={`R${impact.moneySaved.toFixed(0)}`} label="Money Saved" accent={C.sage} />
+            <StatCard icon="heart-outline" value={impact.donationsMade} label="Donations" accent={C.warning} />
           </View>
         </View>
 
@@ -94,8 +95,8 @@ export default function HomeScreen({ navigation }) {
               const isUnlocked = unlockedRewards.includes(tier.reward);
               return (
                 <View key={tier.reward} style={[styles.tierBadge, isUnlocked && styles.tierBadgeUnlocked]}>
-                  <Text style={styles.tierEmoji}>{isUnlocked ? tier.emoji : '🔒'}</Text>
-                  <Text style={[styles.tierLabel, isUnlocked && styles.tierLabelUnlocked]}>{tier.label}</Text>
+                  <Ionicons name={getValidIcon(tier.emoji)} size={24} color={isUnlocked ? '#E67E22' : C.textMuted} style={{ marginBottom: 4 }} />
+                  <Text style={[styles.tierLabel, isUnlocked && styles.tierLabelUnlocked]} numberOfLines={1}>{tier.label}</Text>
                   <Text style={styles.tierThreshold}>{tier.threshold} items</Text>
                 </View>
               );
@@ -106,9 +107,9 @@ export default function HomeScreen({ navigation }) {
         {/* Quick actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsRow}>
-          <ActionCard emoji="🥦" title="Add Food to Inventory" subtitle="Track what you have" onPress={() => navigation.navigate('AddFood')} accent={C.primaryMed} />
+          <ActionCard icon="scan-outline" title="Add Food" subtitle="Scan receipt or barcode" onPress={() => navigation.navigate('AddFood')} accent={C.primaryMed} />
           <View style={{ width: SPACING.sm }} />
-          <ActionCard emoji="🤝" title="Donate Food" subtitle="Help your community" onPress={() => navigation.navigate('Donations')} accent={C.primary} />
+          <ActionCard icon="heart-outline" title="Donate Food" subtitle="Help your community" onPress={() => navigation.navigate('Donations')} accent={C.primary} />
         </View>
 
         {/* AI Insights */}
@@ -120,7 +121,7 @@ export default function HomeScreen({ navigation }) {
         {/* Expiring alert */}
         {expiringSoonCount > 0 && (
           <View style={styles.alertBanner}>
-            <Text style={styles.alertEmoji}>⚠️</Text>
+            <Ionicons name="warning-outline" size={24} color={C.warning} style={{ marginRight: 4 }} />
             <View style={{ flex: 1 }}>
               <Text style={styles.alertTitle}>Expiring Soon</Text>
               <Text style={styles.alertMsg}>{expiringSoonCount} item{expiringSoonCount > 1 ? 's are' : ' is'} expiring within 5 days</Text>
@@ -134,7 +135,7 @@ export default function HomeScreen({ navigation }) {
         {/* Incoming requests banner */}
         {pendingRequestCount > 0 && (
           <TouchableOpacity style={styles.requestBanner} onPress={() => navigation.navigate('Donations')} activeOpacity={0.8}>
-            <Text style={styles.alertEmoji}>📬</Text>
+            <Ionicons name="mail-unread-outline" size={24} color={C.primaryMed} style={{ marginRight: 4 }} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.alertTitle, { color: C.primaryMed }]}>Item Requests</Text>
               <Text style={styles.alertMsg}>{pendingRequestCount} neighbour{pendingRequestCount > 1 ? 's are' : ' is'} requesting items from your hamper</Text>
@@ -165,9 +166,13 @@ export default function HomeScreen({ navigation }) {
                   activeOpacity={0.7} 
                   onPress={() => handleNotificationPress(item)}
                 >
-                  <Text style={styles.notifEmoji}>
-                    {item.type === 'warning' ? '⚠️' : item.type === 'success' ? '✅' : item.type === 'request' ? '📬' : 'ℹ️'}
-                  </Text>
+                  <View style={styles.notifIconWrap}>
+                    <Ionicons 
+                      name={item.type === 'warning' ? 'warning-outline' : item.type === 'success' ? 'checkmark-circle-outline' : item.type === 'request' ? 'mail-outline' : 'information-circle-outline'} 
+                      size={24} 
+                      color={item.type === 'warning' ? C.warning : item.type === 'success' ? C.success : item.type === 'request' ? C.primaryMed : C.info} 
+                    />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.notifItemTitle}>{item.title}</Text>
                     <Text style={styles.notifItemMsg}>{item.message}</Text>
@@ -254,10 +259,10 @@ const makeStyles = (C) => StyleSheet.create({
   notifHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: C.divider },
   notifTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
   closeBtn: { fontSize: 18, color: C.textLight },
-  notifItem: { flexDirection: 'row', padding: SPACING.md, gap: SPACING.md },
-  notifEmoji: { fontSize: 22, marginTop: 2 },
+  notifItem: { flexDirection: 'row', padding: SPACING.md, gap: SPACING.md, alignItems: 'flex-start' },
+  notifIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center' },
   notifItemTitle: { fontSize: 14, fontWeight: '600', color: C.textDark },
   notifItemMsg: { fontSize: 13, color: C.textLight, marginTop: 2, lineHeight: 18 },
   notifItemTime: { fontSize: 11, color: C.textMuted, marginTop: 4 },
-  notifSep: { height: 1, backgroundColor: C.divider, marginLeft: SPACING.lg + 22 + SPACING.md },
+  notifSep: { height: 1, backgroundColor: C.divider, marginLeft: SPACING.lg + 36 + SPACING.md },
 });

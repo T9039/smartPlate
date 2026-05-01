@@ -75,7 +75,7 @@ export default function InventoryScreen({ navigation }) {
         )}
 
         {filtered.length === 0 ? (
-          <EmptyState emoji="📦" title="Nothing here"
+          <EmptyState icon="cube-outline" title="Nothing here"
             message={search ? `No items matching "${search}"` : filter !== 'All' ? 'No items in this category right now.' : 'Your inventory is empty. Add your first item!'} />
         ) : (
           filtered.map((item) => (

@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Switch } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
 import ProfileOptionRow from '../components/ProfileOptionRow';
 import PrimaryButton from '../components/PrimaryButton';
+import { getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function ProfileScreen() {
@@ -54,9 +56,9 @@ export default function ProfileScreen() {
   const memberLabel = activeTheme === 'premium' ? '👑 Premium Member' : activeTheme === 'eco' ? '🌿 Eco Member' : '🌿 SmartPlate Member';
 
   const themeOptions = [
-    { id: 'default', label: 'Default', emoji: '🌿', color: '#2D6A4F' },
-    ...(unlockedRewards.includes('eco_theme') ? [{ id: 'eco', label: 'Eco', emoji: '🪵', color: '#2E7D32' }] : []),
-    ...(unlockedRewards.includes('premium_theme') ? [{ id: 'premium', label: 'Premium', emoji: '👑', color: '#D4AC0D' }] : []),
+    { id: 'default', label: 'Default', icon: 'leaf-outline', color: '#2D6A4F' },
+    ...(unlockedRewards.includes('eco_theme') ? [{ id: 'eco', label: 'Eco', icon: 'color-palette-outline', color: '#2E7D32' }] : []),
+    ...(unlockedRewards.includes('premium_theme') ? [{ id: 'premium', label: 'Premium', icon: 'star-outline', color: '#D4AC0D' }] : []),
   ];
 
   return (
@@ -65,7 +67,7 @@ export default function ProfileScreen() {
         {/* Profile header */}
         <View style={styles.profileHeader}>
           <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
-            {hasIcon ? <Text style={styles.avatarEmoji}>🏅</Text> : <Text style={styles.avatarText}>{initials}</Text>}
+            {hasIcon ? <Ionicons name="medal-outline" size={38} color="#fff" /> : <Text style={styles.avatarText}>{initials}</Text>}
           </View>
           <Text style={styles.userName}>{displayName}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
@@ -88,7 +90,7 @@ export default function ProfileScreen() {
               const isUnlocked = unlockedRewards.includes(tier.reward);
               return (
                 <View key={tier.reward} style={[styles.miniTier, isUnlocked && styles.miniTierUnlocked]}>
-                  <Text style={styles.miniTierEmoji}>{isUnlocked ? tier.emoji : '🔒'}</Text>
+                  <Ionicons name={isUnlocked ? getValidIcon(tier.emoji) : 'lock-closed-outline'} size={18} color={isUnlocked ? '#E67E22' : C.textMuted} style={{ marginBottom: 4 }} />
                   <Text style={[styles.miniTierLabel, isUnlocked && { color: '#E67E22' }]}>{tier.threshold}</Text>
                 </View>
               );
@@ -107,7 +109,7 @@ export default function ProfileScreen() {
                   style={[styles.themeChip, activeTheme === theme.id && { borderColor: theme.color, backgroundColor: theme.color + '22' }]}
                   onPress={() => setActiveTheme(theme.id)} activeOpacity={0.8}
                 >
-                  <Text style={styles.themeChipEmoji}>{theme.emoji}</Text>
+                  <Ionicons name={theme.icon} size={24} color={activeTheme === theme.id ? theme.color : C.textMuted} style={{ marginBottom: 4 }} />
                   <Text style={[styles.themeChipLabel, activeTheme === theme.id && { color: theme.color, fontWeight: '700' }]}>{theme.label}</Text>
                   {activeTheme === theme.id && <Text style={[styles.themeCheck, { color: theme.color }]}>✓</Text>}
                 </TouchableOpacity>
@@ -119,20 +121,20 @@ export default function ProfileScreen() {
         {/* Account settings */}
         <View style={styles.settingsCard}>
           <Text style={styles.groupLabel}>Account</Text>
-          <ProfileOptionRow emoji="✏️" label="Edit Profile" onPress={() => setEditModal(true)} />
-          <ProfileOptionRow emoji="🔔" label="Notifications" onPress={() => setNotifModal(true)} />
-          <ProfileOptionRow emoji="🎖️" label="My Rewards" onPress={() => setRewardsModal(true)} />
-          <ProfileOptionRow emoji="🤖" label="AI Preferences" onPress={() => setAiModal(true)} isLast />
+          <ProfileOptionRow icon="person-circle-outline" label="Edit Profile" onPress={() => setEditModal(true)} />
+          <ProfileOptionRow icon="notifications-outline" label="Notifications" onPress={() => setNotifModal(true)} />
+          <ProfileOptionRow icon="medal-outline" label="My Rewards" onPress={() => setRewardsModal(true)} />
+          <ProfileOptionRow icon="hardware-chip-outline" label="AI Preferences" onPress={() => setAiModal(true)} isLast />
         </View>
 
         <View style={styles.settingsCard}>
           <Text style={styles.groupLabel}>Info</Text>
-          <ProfileOptionRow emoji="❓" label="Help & Support" onPress={() => setHelpModal(true)} />
-          <ProfileOptionRow emoji="ℹ️" label="About SmartPlate" onPress={() => setAboutModal(true)} isLast />
+          <ProfileOptionRow icon="help-circle-outline" label="Help & Support" onPress={() => setHelpModal(true)} />
+          <ProfileOptionRow icon="information-circle-outline" label="About SmartPlate" onPress={() => setAboutModal(true)} isLast />
         </View>
 
         <View style={styles.settingsCard}>
-          <ProfileOptionRow emoji="🚪" label="Log Out" onPress={handleLogout} danger isLast />
+          <ProfileOptionRow icon="log-out-outline" label="Log Out" onPress={handleLogout} danger isLast />
         </View>
 
         <Text style={styles.version}>SmartPlate v1.0.0 · Built with 💚</Text>
@@ -226,7 +228,7 @@ export default function ProfileScreen() {
                 return (
                   <View key={tier.reward} style={[styles.rewardRow, isUnlocked && styles.rewardRowUnlocked]}>
                     <View style={[styles.rewardIcon, isUnlocked && styles.rewardIconUnlocked]}>
-                      <Text style={styles.rewardEmoji}>{isUnlocked ? tier.emoji : '🔒'}</Text>
+                      <Ionicons name={isUnlocked ? getValidIcon(tier.emoji) : 'lock-closed-outline'} size={24} color={isUnlocked ? '#E67E22' : C.textMuted} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.rewardLabel, isUnlocked && styles.rewardLabelUnlocked]}>{tier.label}</Text>
@@ -277,7 +279,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.modalBody}>
               <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
-                <Text style={{ fontSize: 40 }}>🌿</Text>
+                <Ionicons name="leaf" size={48} color={C.primary} />
                 <Text style={[styles.userName, { color: C.primary, marginTop: SPACING.sm, marginBottom: 0 }]}>SmartPlate</Text>
               </View>
               <Text style={styles.aboutText}>SmartPlate helps households track food inventory, get smart recipe suggestions, and donate surplus food to those in need.</Text>

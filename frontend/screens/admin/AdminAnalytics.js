@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
@@ -28,10 +29,10 @@ function SectionTitle({ title }) {
   return <Text style={styles.sectionTitle}>{title}</Text>;
 }
 
-function BigStat({ label, value, emoji, color, sub }) {
+function BigStat({ label, value, icon, color, sub }) {
   return (
     <View style={[styles.bigStatCard, { borderTopColor: color }]}>
-      <Text style={styles.bigStatEmoji}>{emoji}</Text>
+      <Ionicons name={icon} size={28} color={color} style={{ marginBottom: SPACING.xs }} />
       <Text style={[styles.bigStatValue, { color }]}>{value}</Text>
       <Text style={styles.bigStatLabel}>{label}</Text>
       {sub && <Text style={styles.bigStatSub}>{sub}</Text>}
@@ -92,12 +93,12 @@ export default function AdminAnalytics() {
         {/* Top stats */}
         <SectionTitle title="Key Metrics" />
         <View style={styles.bigStatsGrid}>
-          <BigStat label="Food Saved" value={`${data.totalFoodSaved} kg`} emoji="🥗" color={A.success} sub={`${data.totalItemsSaved} items`} />
-          <BigStat label="Food Wasted" value={`${data.totalFoodWasted} kg`} emoji="🗑️" color={A.danger} sub={`${wastePercent}% of total`} />
+          <BigStat label="Food Saved" value={`${data.totalFoodSaved} kg`} icon="leaf-outline" color={A.success} sub={`${data.totalItemsSaved} items`} />
+          <BigStat label="Food Wasted" value={`${data.totalFoodWasted} kg`} icon="trash-outline" color={A.danger} sub={`${wastePercent}% of total`} />
         </View>
         <View style={styles.bigStatsGrid}>
-          <BigStat label="Total Donations" value={data.totalDonations} emoji="🤝" color={A.info} />
-          <BigStat label="Money Saved" value={`R${data.moneySavedTotal.toLocaleString()}`} emoji="💰" color={A.primaryMed} />
+          <BigStat label="Total Donations" value={data.totalDonations} icon="heart-outline" color={A.info} />
+          <BigStat label="Money Saved" value={`R${data.moneySavedTotal.toLocaleString()}`} icon="cash-outline" color={A.primaryMed} />
         </View>
 
         {/* Save vs waste summary */}
@@ -105,7 +106,7 @@ export default function AdminAnalytics() {
         <View style={styles.card}>
           <View style={styles.rateRow}>
             <View style={styles.rateItem}>
-              <Text style={styles.rateEmoji}>✅</Text>
+              <Ionicons name="checkmark-circle-outline" size={24} color={A.success} />
               <Text style={[styles.ratePercent, { color: A.success }]}>{savePercent}%</Text>
               <Text style={styles.rateLabel}>Saved</Text>
             </View>
@@ -114,7 +115,7 @@ export default function AdminAnalytics() {
               <View style={[styles.rateBarFill, { width: `${wastePercent}%`, backgroundColor: A.danger }]} />
             </View>
             <View style={[styles.rateItem, { alignItems: 'flex-end' }]}>
-              <Text style={styles.rateEmoji}>⚠️</Text>
+              <Ionicons name="warning-outline" size={24} color={A.danger} />
               <Text style={[styles.ratePercent, { color: A.danger }]}>{wastePercent}%</Text>
               <Text style={styles.rateLabel}>Wasted</Text>
             </View>
@@ -169,12 +170,12 @@ export default function AdminAnalytics() {
         <SectionTitle title="Platform Insights" />
         <View style={styles.insightsCard}>
           {[
-            { label: 'Top Wasted Category', value: data.topWastedCategory, emoji: '⚠️', color: A.danger },
-            { label: 'Most Donated Item', value: data.topDonatedItem, emoji: '🏆', color: A.success },
-            { label: 'Active Users', value: `${data.activeUsers} of ${data.totalUsers}`, emoji: '👥', color: A.info },
+            { label: 'Top Wasted Category', value: data.topWastedCategory, icon: 'warning-outline', color: A.danger },
+            { label: 'Most Donated Item', value: data.topDonatedItem, icon: 'trophy-outline', color: A.success },
+            { label: 'Active Users', value: `${data.activeUsers} of ${data.totalUsers}`, icon: 'people-outline', color: A.info },
           ].map((insight, idx) => (
             <View key={insight.label} style={[styles.insightRow, idx < 2 && styles.insightRowBorder]}>
-              <Text style={styles.insightEmoji}>{insight.emoji}</Text>
+              <Ionicons name={insight.icon} size={28} color={insight.color} style={{ marginRight: SPACING.sm }} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.insightLabel}>{insight.label}</Text>
                 <Text style={[styles.insightValue, { color: insight.color }]}>{insight.value}</Text>
@@ -199,14 +200,12 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: A.surface, borderRadius: RADIUS.lg, padding: SPACING.md,
     alignItems: 'center', borderTopWidth: 3, ...SHADOW.soft,
   },
-  bigStatEmoji: { fontSize: 28, marginBottom: SPACING.xs },
   bigStatValue: { fontSize: 20, fontWeight: '800', marginBottom: 2 },
   bigStatLabel: { fontSize: 11, color: A.textMuted, fontWeight: '500', textAlign: 'center' },
   bigStatSub: { fontSize: 11, color: A.textLight, marginTop: 2 },
   card: { backgroundColor: A.surface, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.md, ...SHADOW.soft },
   rateRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
   rateItem: { alignItems: 'center', width: 56 },
-  rateEmoji: { fontSize: 20 },
   ratePercent: { fontSize: 18, fontWeight: '800' },
   rateLabel: { fontSize: 10, color: A.textMuted, fontWeight: '500' },
   rateBarContainer: { flex: 1, flexDirection: 'row', height: 14, borderRadius: RADIUS.pill, overflow: 'hidden', backgroundColor: A.border },
@@ -240,7 +239,6 @@ const styles = StyleSheet.create({
   insightsCard: { backgroundColor: A.surface, borderRadius: RADIUS.lg, overflow: 'hidden', ...SHADOW.soft },
   insightRow: { flexDirection: 'row', alignItems: 'center', padding: SPACING.md, gap: SPACING.md },
   insightRowBorder: { borderBottomWidth: 1, borderBottomColor: A.divider },
-  insightEmoji: { fontSize: 24 },
   insightLabel: { fontSize: 12, color: A.textLight, marginBottom: 2 },
   insightValue: { fontSize: 15, fontWeight: '700' },
 });

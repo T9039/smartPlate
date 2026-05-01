@@ -12,17 +12,15 @@ import {
   KeyboardAvoidingView,
   Keyboard,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
-import { CATEGORIES } from '../data/mockData';
+import { CATEGORIES, CATEGORY_ICONS } from '../data/mockData';
 import AppHeader from '../components/AppHeader';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
-const CATEGORY_EMOJIS = {
-  Fruits: '🍎', Vegetables: '🥦', Dairy: '🥛', Meat: '🍗',
-  Pantry: '🥫', Snacks: '🍿', Beverages: '🧃', Leftovers: '🍱',
-};
 
 export default function AddFoodScreen({ navigation }) {
   const { addToInventory } = useAppContext();
@@ -35,6 +33,8 @@ export default function AddFoodScreen({ navigation }) {
   const [price, setPrice] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateObj, setDateObj] = useState(new Date());
 
   const scrollRef = useRef(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -60,6 +60,19 @@ export default function AddFoodScreen({ navigation }) {
       formatted = digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6, 8);
     }
     setExpiryDate(formatted);
+  };
+
+  const onDateSelected = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setDateObj(selectedDate);
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      setExpiryDate(`${year}-${month}-${day}`);
+    }
   };
 
   // Scroll so the focused input is visible above the keyboard
@@ -96,7 +109,7 @@ export default function AddFoodScreen({ navigation }) {
       price: Number(price) || 0,
       expiryDate: expiryDate.trim(),
       expiringSoon: false,
-      emoji: CATEGORY_EMOJIS[category] || '🥗',
+      emoji: CATEGORY_ICONS[category] || 'nutrition-outline',
     });
 
     toast(`${name.trim()} added to inventory ✅`, 'success');
@@ -133,7 +146,7 @@ export default function AddFoodScreen({ navigation }) {
       >
         {/* Image placeholder */}
         <TouchableOpacity style={styles.imagePicker} activeOpacity={0.7}>
-          <Text style={styles.imageEmoji}>📷</Text>
+          <Ionicons name="camera-outline" size={36} color={COLORS.primaryMed} style={{ marginBottom: SPACING.sm }} />
           <Text style={styles.imageLabel}>Add Pic (Optional)</Text>
           <Text style={styles.imageSub}>Tap to upload from gallery</Text>
         </TouchableOpacity>
@@ -161,7 +174,7 @@ export default function AddFoodScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <Text style={[styles.selectText, !category && styles.placeholderText]}>
-              {category ? `${CATEGORY_EMOJIS[category] || ''} ${category}` : 'Select a category'}
+              {category ? `${category}` : 'Select a category'}
             </Text>
             <Text style={styles.selectChevron}>▾</Text>
           </TouchableOpacity>
@@ -227,12 +240,25 @@ export default function AddFoodScreen({ navigation }) {
               returnKeyType="done"
               onFocus={handleFocus}
             />
-            <View style={styles.dateBadge}>
-              <Text style={styles.dateBadgeText}>📅</Text>
-            </View>
+            <TouchableOpacity 
+              style={styles.dateBadge} 
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="calendar-outline" size={20} color={COLORS.primaryMed} />
+            </TouchableOpacity>
           </View>
           <Text style={styles.dateHint}>Enter digits — dashes are added automatically</Text>
         </View>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={dateObj}
+            mode="date"
+            display="default"
+            onChange={onDateSelected}
+          />
+        )}
 
         <PrimaryButton title="Save to Inventory" onPress={handleAdd} style={styles.saveBtn} />
 
@@ -264,7 +290,7 @@ export default function AddFoodScreen({ navigation }) {
                   onPress={() => { setCategory(item); setCategoryModalVisible(false); }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.catEmoji}>{CATEGORY_EMOJIS[item] || '🥗'}</Text>
+                  <Ionicons name={CATEGORY_ICONS[item] || 'nutrition-outline'} size={24} color={COLORS.primaryMed} />
                   <Text style={[styles.catLabel, category === item && styles.catLabelActive]}>
                     {item}
                   </Text>
@@ -295,7 +321,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.lg,
   },
-  imageEmoji: { fontSize: 36, marginBottom: SPACING.sm },
   imageLabel: {
     fontSize: 15,
     fontWeight: '600',
@@ -351,12 +376,15 @@ const styles = StyleSheet.create({
   },
   dateBadge: {
     position: 'absolute',
-    right: 14,
-    top: 0,
-    bottom: 0,
+    right: 8,
+    top: 8,
+    bottom: 8,
     justifyContent: 'center',
+    alignItems: 'center',
+    width: 36,
+    backgroundColor: COLORS.paleGreen,
+    borderRadius: RADIUS.sm,
   },
-  dateBadgeText: { fontSize: 18 },
   dateHint: {
     fontSize: 11,
     color: COLORS.textMuted,
@@ -402,7 +430,6 @@ const styles = StyleSheet.create({
   catOptionActive: {
     backgroundColor: COLORS.paleGreen,
   },
-  catEmoji: { fontSize: 22 },
   catLabel: {
     flex: 1,
     fontSize: 15,

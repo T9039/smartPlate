@@ -22,6 +22,7 @@ import {
   View, Text, TouchableOpacity, Modal, StyleSheet,
   Animated, Dimensions, Platform, PanResponder,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 
@@ -31,10 +32,10 @@ const { width: SCREEN_W } = Dimensions.get('window');
 
 // ─── Toast colours ────────────────────────────────────────────────────────────
 const TOAST_CONFIG = {
-  success: { bg: '#1B4332', icon: '✅', text: '#fff' },
-  error:   { bg: '#C0392B', icon: '❌', text: '#fff' },
-  warning: { bg: '#C96A12', icon: '⚠️', text: '#fff' },
-  info:    { bg: '#2471A3', icon: 'ℹ️',  text: '#fff' },
+  success: { bg: '#1B4332', icon: 'checkmark-circle', text: '#fff' },
+  error:   { bg: '#C0392B', icon: 'close-circle', text: '#fff' },
+  warning: { bg: '#C96A12', icon: 'warning', text: '#fff' },
+  info:    { bg: '#2471A3', icon: 'information-circle',  text: '#fff' },
 };
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -142,7 +143,7 @@ export function AlertProvider({ children }) {
           ]}
           pointerEvents="none"
         >
-          <Text style={styles.toastIcon}>{tc.icon}</Text>
+          <Ionicons name={tc.icon} size={18} color={tc.text} />
           <Text style={[styles.toastText, { color: tc.text }]}>{toastConfig.message}</Text>
         </Animated.View>
       )}
@@ -243,7 +244,6 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     ...SHADOW.strong,
   },
-  toastIcon: { fontSize: 18 },
   toastText: { fontSize: 14, fontWeight: '600', flex: 1, lineHeight: 20 },
 
   // Modal overlay

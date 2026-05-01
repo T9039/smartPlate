@@ -150,7 +150,7 @@ export function AppProvider({ children }) {
         price: item.price || 0,
         expiry_date: item.expiryDate,
         added_date: new Date().toISOString().split('T')[0],
-        emoji: item.emoji || '🥗',
+        emoji: item.emoji || 'nutrition-outline',
       };
       const addedItem = await api.addInventoryItem(dbItem);
       setInventory((prev) => [addedItem, ...prev]);
@@ -205,7 +205,7 @@ export function AppProvider({ children }) {
         name: item.name,
         quantity: `${item.quantity} ${item.unit || ''}`.trim(),
         source_type: item.sourceType || 'manual',
-        emoji: item.emoji || '📦',
+        emoji: item.emoji || 'cube-outline',
       };
       const added = await api.addDonation(dbDonation);
       setDonationHamper((prev) => [...prev, { ...dbDonation, id: added.id.toString(), readyStatus: false }]);

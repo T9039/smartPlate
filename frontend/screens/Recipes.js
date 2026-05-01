@@ -33,7 +33,7 @@ export default function RecipesScreen({ navigation }) {
         </View>
 
         {displayedRecipes.length === 0 ? (
-          <EmptyState emoji="🍽️" title="No recipes yet" message="Add some food items to your inventory and we'll suggest recipes!" />
+          <EmptyState icon="restaurant-outline" title="No recipes yet" message="Add some food items to your inventory and we'll suggest recipes!" />
         ) : (
           displayedRecipes.map((recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} onPress={() => navigation.navigate('RecipeDetails', { recipe })} />

@@ -1,19 +1,20 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SPACING } from '../styles/theme';
 
-export default function ProfileOptionRow({ emoji, label, onPress, danger, isLast }) {
+export default function ProfileOptionRow({ icon, label, onPress, danger, isLast }) {
   return (
     <TouchableOpacity
       style={[styles.row, isLast && styles.lastRow]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.iconWrap, danger && styles.dangerIconWrap]}>
-        <Text style={styles.emoji}>{emoji}</Text>
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon || 'settings-outline'} size={22} color={danger ? COLORS.danger : COLORS.textMid} />
       </View>
-      <Text style={[styles.label, danger && styles.dangerLabel]}>{label}</Text>
-      {!danger && <Text style={styles.chevron}>›</Text>}
+      <Text style={[styles.label, danger && styles.labelDanger]}>{label}</Text>
+      {!danger && <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />}
     </TouchableOpacity>
   );
 }
@@ -31,33 +32,22 @@ const styles = StyleSheet.create({
   lastRow: {
     borderBottomWidth: 0,
   },
-  iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.paleGreen,
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconContainer: {
+    width: 36, 
+    height: 36, 
+    borderRadius: RADIUS.md, 
+    backgroundColor: COLORS.card,
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginRight: SPACING.md,
   },
-  dangerIconWrap: {
-    backgroundColor: '#FFE5E5',
+  label: { 
+    flex: 1, 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: COLORS.textDark 
   },
-  emoji: {
-    fontSize: 17,
-  },
-  label: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: COLORS.textDark,
-  },
-  dangerLabel: {
-    color: '#C0392B',
-    fontWeight: '600',
-  },
-  chevron: {
-    fontSize: 20,
-    color: COLORS.textMuted,
-    fontWeight: '300',
+  labelDanger: { 
+    color: COLORS.danger 
   },
 });

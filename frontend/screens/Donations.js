@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
 import DonationModal from '../components/DonationModal';
 import EmptyState from '../components/EmptyState';
-import { mockDonationLocations } from '../data/mockData';
+import { mockDonationLocations, getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function DonationsScreen({ navigation }) {
@@ -90,7 +91,7 @@ export default function DonationsScreen({ navigation }) {
         {/* Booking confirmation */}
         {booking && (
           <View style={styles.bookingCard}>
-            <Text style={styles.bookingEmoji}>📍</Text>
+            <Ionicons name="location" size={28} color="#fff" />
             <View style={{ flex: 1 }}>
               <Text style={styles.bookingTitle}>Drop-off Booked</Text>
               <Text style={styles.bookingLocation}>{booking.location.name}</Text>
@@ -102,19 +103,19 @@ export default function DonationsScreen({ navigation }) {
         {/* Hamper ready card */}
         {donationHamper.length > 0 && !booking && (
           <TouchableOpacity style={styles.hamperReadyCard} onPress={openBookingModal} activeOpacity={0.85}>
-            <Text style={styles.hamperEmoji}>🎁</Text>
+            <Ionicons name="gift" size={30} color="#fff" />
             <View style={{ flex: 1 }}>
               <Text style={styles.hamperReadyTitle}>Your hamper is ready!</Text>
               <Text style={styles.hamperReadyDesc}>{donationHamper.length} item{donationHamper.length > 1 ? 's' : ''} packed · Tap to book a drop-off</Text>
             </View>
-            <Text style={styles.hamperArrow}>→</Text>
+            <Ionicons name="arrow-forward" size={22} color="rgba(255,255,255,0.7)" />
           </TouchableOpacity>
         )}
 
         {/* Hamper items */}
         <Text style={styles.sectionTitle}>In Donation Hamper</Text>
         {donationHamper.length === 0 ? (
-          <EmptyState emoji="🧺" title="Hamper is empty" message="Add food items to donate to your community.">
+          <EmptyState icon="basket-outline" title="Hamper is empty" message="Add food items to donate to your community.">
             <TouchableOpacity style={styles.emptyAddBtn} onPress={() => setAddModalVisible(true)} activeOpacity={0.8}>
               <Text style={styles.emptyAddBtnText}>+ Add Item</Text>
             </TouchableOpacity>
@@ -123,14 +124,14 @@ export default function DonationsScreen({ navigation }) {
           donationHamper.map((item) => (
             <View key={item.id} style={styles.hamperItem}>
               <View style={styles.hamperItemLeft}>
-                <View style={styles.hamperItemIcon}><Text style={styles.hamperItemEmoji}>{item.emoji || '📦'}</Text></View>
+                <View style={styles.hamperItemIcon}><Ionicons name={getValidIcon(item.emoji)} size={24} color={C.primary} /></View>
                 <View>
                   <Text style={styles.hamperItemName}>{item.name}</Text>
                   <Text style={styles.hamperItemMeta}>{item.quantity} · {item.sourceType === 'inventory' ? 'From inventory' : 'Manually added'}</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(item)} activeOpacity={0.7}>
-                <Text style={styles.removeBtnText}>✕</Text>
+                <Ionicons name="close" size={16} color="#C0392B" />
               </TouchableOpacity>
             </View>
           ))
@@ -169,7 +170,7 @@ export default function DonationsScreen({ navigation }) {
 
         {/* Impact note */}
         <View style={styles.impactNote}>
-          <Text style={styles.impactNoteEmoji}>🌍</Text>
+          <Ionicons name="earth" size={20} color={C.primaryMed} />
           <Text style={styles.impactNoteText}>Every donation helps reduce food waste in your community and supports families in need.</Text>
         </View>
 
@@ -196,7 +197,7 @@ export default function DonationsScreen({ navigation }) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Book Drop-off</Text>
               <TouchableOpacity onPress={() => setBookingModalVisible(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <Ionicons name="close" size={24} color={C.textLight} />
               </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={styles.modalBody}>
@@ -209,7 +210,7 @@ export default function DonationsScreen({ navigation }) {
                     <Text style={styles.locationName}>{loc.name}</Text>
                     <Text style={styles.locationAddress}>{loc.address}</Text>
                   </View>
-                  {selectedLocation?.id === loc.id && <Text style={styles.locationCheck}>✓</Text>}
+                  {selectedLocation?.id === loc.id && <Ionicons name="checkmark-circle" size={20} color={C.primaryMed} />}
                 </TouchableOpacity>
               ))}
               {selectedLocation && (
@@ -267,7 +268,6 @@ const makeStyles = (C) => StyleSheet.create({
     backgroundColor: C.primary, borderRadius: RADIUS.xl, padding: SPACING.lg,
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginBottom: SPACING.lg, ...SHADOW.medium,
   },
-  bookingEmoji: { fontSize: 28 },
   bookingTitle: { fontSize: 12, color: C.mint, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
   bookingLocation: { fontSize: 15, fontWeight: '700', color: '#fff' },
   bookingSlot: { fontSize: 13, color: C.sage, marginTop: 2 },
@@ -275,22 +275,18 @@ const makeStyles = (C) => StyleSheet.create({
     backgroundColor: C.primary, borderRadius: RADIUS.xl, padding: SPACING.lg,
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginBottom: SPACING.lg, ...SHADOW.medium,
   },
-  hamperEmoji: { fontSize: 30 },
   hamperReadyTitle: { fontSize: 15, fontWeight: '700', color: '#fff' },
   hamperReadyDesc: { fontSize: 12, color: C.mint, marginTop: 3 },
-  hamperArrow: { fontSize: 22, color: 'rgba(255,255,255,0.7)', fontWeight: '700' },
   hamperItem: {
     backgroundColor: C.surface, borderRadius: RADIUS.lg, padding: SPACING.md,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: SPACING.sm, ...SHADOW.soft,
   },
   hamperItemLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
-  hamperItemIcon: { width: 46, height: 46, borderRadius: RADIUS.md, backgroundColor: C.paleGreen, alignItems: 'center', justifyContent: 'center' },
-  hamperItemEmoji: { fontSize: 22 },
+  hamperItemIcon: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: C.paleGreen, alignItems: 'center', justifyContent: 'center' },
   hamperItemName: { fontSize: 15, fontWeight: '600', color: C.textDark },
   hamperItemMeta: { fontSize: 12, color: C.textLight, marginTop: 2 },
   removeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#FFE5E5', alignItems: 'center', justifyContent: 'center' },
-  removeBtnText: { fontSize: 13, color: '#C0392B', fontWeight: '700' },
   communityNote: { fontSize: 12, color: C.textLight, marginBottom: SPACING.md },
   communityCard: { backgroundColor: C.surface, borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.sm, ...SHADOW.soft },
   communityHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },

@@ -6,10 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
 import AppHeader from '../components/AppHeader';
 import PrimaryButton from '../components/PrimaryButton';
+import { getValidIcon } from '../data/mockData';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 const STATUS_CONFIG = {
@@ -17,19 +19,19 @@ const STATUS_CONFIG = {
     label: 'Expiring Soon',
     color: COLORS.warning,
     bg: COLORS.warningBg,
-    icon: '⚠️',
+    icon: 'warning-outline',
   },
   'in-inventory': {
     label: 'In Inventory',
     color: COLORS.primaryMed,
     bg: COLORS.paleGreen,
-    icon: '✅',
+    icon: 'checkmark-circle-outline',
   },
   missing: {
     label: 'Need to buy',
     color: COLORS.textMuted,
     bg: COLORS.divider,
-    icon: '○',
+    icon: 'ellipse-outline',
   },
 };
 
@@ -65,10 +67,10 @@ export default function RecipeDetailsScreen({ navigation, route }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Hero image */}
-        <View style={styles.heroImage}>
-          <Text style={styles.heroEmoji}>{recipe.emoji || '🍽️'}</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        {/* Hero section */}
+        <View style={styles.heroSection}>
+          <Ionicons name={getValidIcon(recipe.icon || recipe.emoji)} size={60} color={COLORS.primary} />
         </View>
 
         {/* Title and meta */}
@@ -76,10 +78,10 @@ export default function RecipeDetailsScreen({ navigation, route }) {
           <Text style={styles.recipeTitle}>{recipe.title}</Text>
           <View style={styles.metaRow}>
             <View style={styles.metaChip}>
-              <Text style={styles.metaText}>⏱  {recipe.time}</Text>
+              <Text style={styles.metaText}><Ionicons name="time-outline" size={12} /> {recipe.time}</Text>
             </View>
             <View style={styles.metaChip}>
-              <Text style={styles.metaText}>📊  {recipe.difficulty}</Text>
+              <Text style={styles.metaText}><Ionicons name="stats-chart-outline" size={12} /> {recipe.difficulty}</Text>
             </View>
             <View style={[styles.metaChip, styles.matchChip, { borderColor: matchColor }]}>
               <Text style={[styles.matchChipText, { color: matchColor }]}>
@@ -107,7 +109,7 @@ export default function RecipeDetailsScreen({ navigation, route }) {
             const cfg = STATUS_CONFIG[ing.status] || STATUS_CONFIG.missing;
             return (
               <View key={index} style={[styles.ingredientRow, { backgroundColor: cfg.bg }]}>
-                <Text style={styles.ingredientIcon}>{cfg.icon}</Text>
+                <Ionicons name={cfg.icon} size={18} color={cfg.color} style={styles.ingredientIcon} />
                 <Text style={styles.ingredientName}>{ing.name}</Text>
                 <View style={[styles.ingredientBadge, { backgroundColor: cfg.color }]}>
                   <Text style={styles.ingredientBadgeText}>{cfg.label}</Text>
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
   scroll: {
     paddingBottom: SPACING.xxl,
   },
-  heroImage: {
+  heroSection: {
     height: 220,
     backgroundColor: COLORS.paleGreen,
     alignItems: 'center',
@@ -159,7 +161,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  heroEmoji: { fontSize: 80 },
   titleSection: {
     padding: SPACING.lg,
     paddingBottom: SPACING.sm,
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
     gap: SPACING.sm,
   },
-  ingredientIcon: { fontSize: 16, width: 22 },
+  ingredientIcon: { width: 22 },
   ingredientName: {
     flex: 1,
     fontSize: 14,
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
   },
   cookedSection: {
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
+    paddingVertical: SPACING.xl,
     alignItems: 'center',
   },
   cookedBtn: {

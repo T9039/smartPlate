@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAppContext } from '../context/AppContext';
 import { COLORS, SPACING } from '../styles/theme';
@@ -33,10 +34,11 @@ const Tab = createBottomTabNavigator();
 
 // ─── User tab bar ─────────────────────────────────────────────────────────────
 
-function TabIcon({ emoji, label, focused, activeColor, inactiveColor }) {
+// Custom Tab Icon component
+function TabIcon({ icon, label, focused, activeColor, inactiveColor }) {
   return (
     <View style={styles.tabIconWrap}>
-      <Text style={[styles.tabEmoji, { opacity: focused ? 1 : 0.55 }]}>{emoji}</Text>
+      <Ionicons name={icon} size={22} color={focused ? activeColor : inactiveColor} style={{ opacity: focused ? 1 : 0.55 }} />
       <Text style={[styles.tabLabel, { color: focused ? activeColor : inactiveColor }]}>
         {label}
       </Text>
@@ -86,20 +88,30 @@ function MainTabs() {
         },
       }}
     >
-      <Tab.Screen name="Home" component={HomeScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="Home" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="home-outline" label="Home" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
       />
-      <Tab.Screen name="Inventory" component={InventoryScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📦" label="Inventory" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
+      <Tab.Screen
+        name="Inventory"
+        component={InventoryScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="cube-outline" label="Inventory" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
       />
-      <Tab.Screen name="Recipes" component={RecipesScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🍳" label="Recipes" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
+      <Tab.Screen
+        name="Recipes"
+        component={RecipesScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="restaurant-outline" label="Recipes" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
       />
-      <Tab.Screen name="Donations" component={DonationsScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🤝" label="Donate" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
+      <Tab.Screen
+        name="Donations"
+        component={DonationsScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="heart-outline" label="Donate" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
       />
-      <Tab.Screen name="Profile" component={ProfileScreen}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Profile" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="person-outline" label="Profile" focused={focused} activeColor={activeColor} inactiveColor={inactiveColor} /> }}
       />
     </Tab.Navigator>
   );
@@ -121,20 +133,30 @@ function AdminTabs() {
         tabBarStyle: [styles.adminTabBar, { height: tabHeight, paddingBottom: bottomPadding }],
       }}
     >
-      <Tab.Screen name="AdminDashboard" component={AdminDashboard}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📊" label="Dashboard" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
+      <Tab.Screen
+        name="AdminDashboard"
+        component={AdminDashboard}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="grid-outline" label="Dashboard" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
       />
-      <Tab.Screen name="AdminUsers" component={AdminUsers}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="👥" label="Users" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
+      <Tab.Screen
+        name="AdminUsers"
+        component={AdminUsers}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="people-outline" label="Users" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
       />
-      <Tab.Screen name="AdminFoodMonitor" component={AdminFoodMonitor}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🗂️" label="Food" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
+      <Tab.Screen
+        name="AdminFoodMonitor"
+        component={AdminFoodMonitor}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="folder-outline" label="Food" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
       />
-      <Tab.Screen name="AdminDonations" component={AdminDonations}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="🤝" label="Donations" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
+      <Tab.Screen
+        name="AdminDonations"
+        component={AdminDonations}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="heart-outline" label="Donations" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
       />
-      <Tab.Screen name="AdminAnalytics" component={AdminAnalytics}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon emoji="📈" label="Analytics" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
+      <Tab.Screen
+        name="AdminAnalytics"
+        component={AdminAnalytics}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon icon="stats-chart-outline" label="Analytics" focused={focused} activeColor="#95D5B2" inactiveColor="rgba(255,255,255,0.45)" /> }}
       />
     </Tab.Navigator>
   );
@@ -170,10 +192,12 @@ const styles = StyleSheet.create({
   tabIconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    marginTop: 4,
   },
-  tabEmoji: { fontSize: 20 },
-  tabLabel: { fontSize: 10, fontWeight: '500' },
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
   adminTabBar: {
     backgroundColor: '#1B4332',
     borderTopColor: '#163527',

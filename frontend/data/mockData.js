@@ -17,14 +17,24 @@ export const CATEGORIES = [
   'Pantry', 'Snacks', 'Beverages', 'Leftovers',
 ];
 
+export const CATEGORY_ICONS = {
+  Vegetables: 'leaf-outline',
+  Fruits: 'nutrition-outline',
+  Dairy: 'water-outline',
+  Meat: 'restaurant-outline',
+  Pantry: 'cube-outline',
+  Leftovers: 'fast-food-outline',
+  Other: 'ellipsis-horizontal-outline',
+};
+
 /**
  * Default challenge tier config — also seeded into the challenge_tiers DB table.
  * Used client-side as a fallback / initial state before the server responds.
  */
 export const CHALLENGE_TIERS = [
-  { threshold: 3, reward: 'icon',          label: 'Eco Champion Icon', emoji: '🏅', description: 'New profile icon for your achievements' },
-  { threshold: 6, reward: 'eco_theme',     label: 'Eco Theme',         emoji: '🌿', description: 'Green & wood eco-friendly UI theme' },
-  { threshold: 9, reward: 'premium_theme', label: 'Premium Theme',     emoji: '👑', description: 'Gold & green premium UI theme' },
+  { threshold: 3, reward: 'icon',          label: 'Eco Champion Icon', emoji: 'medal-outline', description: 'New profile icon for your achievements' },
+  { threshold: 6, reward: 'eco_theme',     label: 'Eco Theme',         emoji: 'leaf-outline', description: 'Green & wood eco-friendly UI theme' },
+  { threshold: 9, reward: 'premium_theme', label: 'Premium Theme',     emoji: 'star-outline', description: 'Gold & green premium UI theme' },
 ];
 
 /**
@@ -59,3 +69,36 @@ export const getExpiryLabel = (expiryDate) => {
 };
 
 export const isExpiringSoon = (expiryDate) => getDaysUntilExpiry(expiryDate) <= 5;
+
+export const getValidIcon = (iconString) => {
+  if (!iconString) return 'nutrition-outline';
+  
+  // Known legacy emojis mapped to Ionicons
+  const legacyMap = {
+    '🥗': 'leaf-outline',
+    '🍎': 'nutrition-outline',
+    '📦': 'cube-outline',
+    '🥩': 'restaurant-outline',
+    '🥛': 'water-outline',
+    '🍕': 'fast-food-outline',
+    '🍽️': 'restaurant-outline',
+    '✅': 'checkmark-circle-outline',
+    '❌': 'close-circle-outline',
+    '⚠️': 'warning-outline',
+    'ℹ️': 'information-circle-outline',
+    '🏆': 'trophy-outline',
+    '👥': 'people-outline',
+    '💰': 'cash-outline',
+    '📈': 'stats-chart-outline',
+    '🗑️': 'trash-outline',
+    '🗂️': 'folder-outline',
+    '🤝': 'heart-outline',
+  };
+  
+  if (legacyMap[iconString]) return legacyMap[iconString];
+  
+  // If it contains non-ASCII characters (likely an emoji), fallback to default
+  if (/[^\x00-\x7F]/.test(iconString)) return 'nutrition-outline';
+  
+  return iconString;
+};

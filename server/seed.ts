@@ -56,9 +56,9 @@ const upsertTier = db.prepare(`
   ON CONFLICT(reward) DO NOTHING
 `);
 
-upsertTier.run(3, 'icon',          'Eco Champion Icon', '🏅', 'New profile icon for your achievements');
-upsertTier.run(6, 'eco_theme',     'Eco Theme',         '🌿', 'Green & wood eco-friendly UI theme');
-upsertTier.run(9, 'premium_theme', 'Premium Theme',     '👑', 'Gold & green premium UI theme');
+upsertTier.run(3, 'icon',          'Eco Champion Icon', 'medal-outline', 'New profile icon for your achievements');
+upsertTier.run(6, 'eco_theme',     'Eco Theme',         'leaf-outline', 'Green & wood eco-friendly UI theme');
+upsertTier.run(9, 'premium_theme', 'Premium Theme',     'star-outline', 'Gold & green premium UI theme');
 
 console.log('✅ Challenge tiers seeded');
 
@@ -101,14 +101,14 @@ const insertItem = db.prepare(`
 const invCount = (db.prepare(`SELECT COUNT(*) as c FROM inventory WHERE user_id = ?`).get(demoUser.id) as { c: number }).c;
 if (invCount === 0) {
   const items = [
-    { name: 'Tomatoes',       category: 'Vegetables', qty: 4,   unit: 'pieces', price: 25.00, expiry: daysFromNow(3),  emoji: '🍅' },
-    { name: 'Full Cream Milk',category: 'Dairy',      qty: 1,   unit: 'litre',  price: 22.99, expiry: daysFromNow(4),  emoji: '🥛' },
-    { name: 'Brown Bread',    category: 'Pantry',     qty: 1,   unit: 'loaf',   price: 18.99, expiry: daysFromNow(10), emoji: '🍞' },
-    { name: 'Chicken Breast', category: 'Meat',       qty: 500, unit: 'g',      price: 59.99, expiry: daysFromNow(5),  emoji: '🍗' },
-    { name: 'Spinach',        category: 'Vegetables', qty: 1,   unit: 'bunch',  price: 15.00, expiry: daysFromNow(2),  emoji: '🥬' },
-    { name: 'Pasta',          category: 'Pantry',     qty: 500, unit: 'g',      price: 12.99, expiry: daysFromNow(210),emoji: '🍝' },
-    { name: 'Garlic',         category: 'Vegetables', qty: 3,   unit: 'cloves', price: 8.00,  expiry: daysFromNow(20), emoji: '🧄' },
-    { name: 'Cheddar Cheese', category: 'Dairy',      qty: 200, unit: 'g',      price: 35.99, expiry: daysFromNow(15), emoji: '🧀' },
+    { name: 'Tomatoes',       category: 'Vegetables', qty: 4,   unit: 'pieces', price: 25.00, expiry: daysFromNow(3),  emoji: 'leaf-outline' },
+    { name: 'Full Cream Milk',category: 'Dairy',      qty: 1,   unit: 'litre',  price: 22.99, expiry: daysFromNow(4),  emoji: 'water-outline' },
+    { name: 'Brown Bread',    category: 'Pantry',     qty: 1,   unit: 'loaf',   price: 18.99, expiry: daysFromNow(10), emoji: 'cube-outline' },
+    { name: 'Chicken Breast', category: 'Meat',       qty: 500, unit: 'g',      price: 59.99, expiry: daysFromNow(5),  emoji: 'restaurant-outline' },
+    { name: 'Spinach',        category: 'Vegetables', qty: 1,   unit: 'bunch',  price: 15.00, expiry: daysFromNow(2),  emoji: 'leaf-outline' },
+    { name: 'Pasta',          category: 'Pantry',     qty: 500, unit: 'g',      price: 12.99, expiry: daysFromNow(210),emoji: 'cube-outline' },
+    { name: 'Garlic',         category: 'Vegetables', qty: 3,   unit: 'cloves', price: 8.00,  expiry: daysFromNow(20), emoji: 'leaf-outline' },
+    { name: 'Cheddar Cheese', category: 'Dairy',      qty: 200, unit: 'g',      price: 35.99, expiry: daysFromNow(15), emoji: 'water-outline' },
   ];
 
   for (const it of items) {
@@ -127,9 +127,9 @@ const insertDonation = db.prepare(`
 
 const donCount = (db.prepare(`SELECT COUNT(*) as c FROM donation_hampers WHERE user_id = ?`).get(demoUser.id) as { c: number }).c;
 if (donCount === 0) {
-  insertDonation.run(demoUser.id, 'All Purpose Flour', '1 kg',    'manual',    1, '🌾');
-  insertDonation.run(demoUser.id, 'Spaghetti Pasta',   '500 g',   'inventory', 1, '🍝');
-  insertDonation.run(demoUser.id, 'Tomato Sauce',       '2 cans',  'manual',    1, '🥫');
+  insertDonation.run(demoUser.id, 'All Purpose Flour', '1 kg',    'manual',    1, 'cube-outline');
+  insertDonation.run(demoUser.id, 'Spaghetti Pasta',   '500 g',   'inventory', 1, 'cube-outline');
+  insertDonation.run(demoUser.id, 'Tomato Sauce',       '2 cans',  'manual',    1, 'cube-outline');
   console.log('✅ Donation hamper items seeded for Demo user');
 } else {
   console.log('ℹ️  Demo donation hamper already exists — skipping');
