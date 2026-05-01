@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Platform,
   Modal,
   FlatList,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import { CATEGORIES } from '../data/mockData';
 import AppHeader from '../components/AppHeader';
 import PrimaryButton from '../components/PrimaryButton';
@@ -24,6 +26,7 @@ const CATEGORY_EMOJIS = {
 
 export default function AddFoodScreen({ navigation }) {
   const { addToInventory } = useAppContext();
+  const { alert, toast } = useAlert();
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
@@ -33,13 +36,55 @@ export default function AddFoodScreen({ navigation }) {
   const [expiryDate, setExpiryDate] = useState('');
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
 
+  const scrollRef = useRef(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  // Auto-format date as user types: insert dashes at positions 4 and 7
+  const handleDateChange = (text) => {
+    // Strip non-numeric
+    const digits = text.replace(/\D/g, '');
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = digits.slice(0, 4) + '-' + digits.slice(4);
+    }
+    if (digits.length > 6) {
+      formatted = digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6, 8);
+    }
+    setExpiryDate(formatted);
+  };
+
+  // Scroll so the focused input is visible above the keyboard
+  const handleFocus = (event) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        y: event.nativeEvent.target,
+        animated: true,
+      });
+      // Use the safer scrollIntoView-style approach via measureInWindow
+      event.target?.measureInWindow?.((x, y) => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({ y: y - 120, animated: true });
+        }
+      });
+    }
+  };
+
   const handleAdd = () => {
     if (!name.trim() || !category || !quantity || !expiryDate.trim()) {
-      Alert.alert('Missing fields', 'Please fill in Name, Category, Quantity, and Expiry Date.');
+      alert('Missing fields', 'Please fill in Name, Category, Quantity, and Expiry Date.');
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate.trim())) {
-      Alert.alert('Invalid date', 'Please enter the date in YYYY-MM-DD format (e.g. 2026-05-10).');
+      alert('Invalid date', 'Please enter the date in YYYY-MM-DD format (e.g. 2026-05-10).');
       return;
     }
 
@@ -54,31 +99,38 @@ export default function AddFoodScreen({ navigation }) {
       emoji: CATEGORY_EMOJIS[category] || '🥗',
     });
 
-    Alert.alert('Added! ✅', `${name.trim()} has been added to your inventory.`, [
-      {
-        text: 'Go to Inventory',
-        onPress: () => navigation.navigate('Inventory'),
-      },
+    toast(`${name.trim()} added to inventory ✅`, 'success');
+    alert('Item added!', `${name.trim()} has been added to your inventory.`, [
+      { text: 'Go to Inventory', onPress: () => navigation.navigate('Inventory') },
       {
         text: 'Add Another',
+        style: 'cancel',
         onPress: () => {
           setName(''); setCategory(''); setQuantity('');
           setUnit('pieces'); setPrice(''); setExpiryDate('');
         },
-        style: 'cancel',
       },
     ]);
   };
 
   return (
-    <View style={styles.flex}>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
       <AppHeader
         title="Add Food Item"
         subtitle="Track a new item in your inventory"
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Image placeholder */}
         <TouchableOpacity style={styles.imagePicker} activeOpacity={0.7}>
           <Text style={styles.imageEmoji}>📷</Text>
@@ -95,6 +147,8 @@ export default function AddFoodScreen({ navigation }) {
             onChangeText={setName}
             placeholder="e.g. Ripe Tomatoes"
             placeholderTextColor={COLORS.textMuted}
+            returnKeyType="next"
+            onFocus={handleFocus}
           />
         </View>
 
@@ -113,7 +167,7 @@ export default function AddFoodScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Quantity and Price row */}
+        {/* Quantity and Unit row */}
         <View style={styles.rowFields}>
           <View style={[styles.fieldWrap, { flex: 1 }]}>
             <Text style={styles.fieldLabel}>Quantity *</Text>
@@ -124,6 +178,8 @@ export default function AddFoodScreen({ navigation }) {
               placeholder="1"
               placeholderTextColor={COLORS.textMuted}
               keyboardType="numeric"
+              returnKeyType="next"
+              onFocus={handleFocus}
             />
           </View>
           <View style={{ width: SPACING.md }} />
@@ -135,10 +191,13 @@ export default function AddFoodScreen({ navigation }) {
               onChangeText={setUnit}
               placeholder="pieces"
               placeholderTextColor={COLORS.textMuted}
+              returnKeyType="next"
+              onFocus={handleFocus}
             />
           </View>
         </View>
 
+        {/* Price */}
         <View style={styles.fieldWrap}>
           <Text style={styles.fieldLabel}>Price (R)</Text>
           <TextInput
@@ -148,23 +207,37 @@ export default function AddFoodScreen({ navigation }) {
             placeholder="0.00"
             placeholderTextColor={COLORS.textMuted}
             keyboardType="decimal-pad"
+            returnKeyType="next"
+            onFocus={handleFocus}
           />
         </View>
 
-        {/* Expiry date */}
+        {/* Expiry date — auto-formatted */}
         <View style={styles.fieldWrap}>
-          <Text style={styles.fieldLabel}>Expiry Date * (YYYY-MM-DD)</Text>
-          <TextInput
-            style={styles.input}
-            value={expiryDate}
-            onChangeText={setExpiryDate}
-            placeholder="e.g. 2026-05-15"
-            placeholderTextColor={COLORS.textMuted}
-            keyboardType="numbers-and-punctuation"
-          />
+          <Text style={styles.fieldLabel}>Expiry Date *</Text>
+          <View style={styles.dateInputWrap}>
+            <TextInput
+              style={[styles.input, styles.dateInput]}
+              value={expiryDate}
+              onChangeText={handleDateChange}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={COLORS.textMuted}
+              keyboardType="number-pad"
+              maxLength={10}
+              returnKeyType="done"
+              onFocus={handleFocus}
+            />
+            <View style={styles.dateBadge}>
+              <Text style={styles.dateBadgeText}>📅</Text>
+            </View>
+          </View>
+          <Text style={styles.dateHint}>Enter digits — dashes are added automatically</Text>
         </View>
 
         <PrimaryButton title="Save to Inventory" onPress={handleAdd} style={styles.saveBtn} />
+
+        {/* Extra bottom padding while keyboard is visible */}
+        {keyboardVisible && <View style={{ height: SPACING.xxl }} />}
       </ScrollView>
 
       {/* Category picker modal */}
@@ -202,7 +275,7 @@ export default function AddFoodScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -268,6 +341,27 @@ const styles = StyleSheet.create({
   rowFields: {
     flexDirection: 'row',
     marginBottom: SPACING.xs,
+  },
+  // Date field
+  dateInputWrap: {
+    position: 'relative',
+  },
+  dateInput: {
+    paddingRight: 48,
+  },
+  dateBadge: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  dateBadgeText: { fontSize: 18 },
+  dateHint: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginTop: 4,
+    paddingLeft: 2,
   },
   saveBtn: { marginTop: SPACING.sm },
   // Modal

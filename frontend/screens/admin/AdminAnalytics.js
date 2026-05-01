@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockAnalyticsData } from '../../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -15,7 +14,15 @@ const A = {
   border: '#E2E8F0', divider: '#EDF2F7',
 };
 
-const data = mockAnalyticsData;
+// Placeholder until admin analytics API route is implemented
+const data = {
+  totalFoodSaved: 0, totalFoodWasted: 0, totalDonations: 0,
+  totalUsers: 0, activeUsers: 0, totalItemsSaved: 0, moneySavedTotal: 0,
+  topWastedCategory: '—', topDonatedItem: '—',
+  weeklyTrend: [],
+  categoryBreakdown: [],
+  donationsByLocation: [],
+};
 
 function SectionTitle({ title }) {
   return <Text style={styles.sectionTitle}>{title}</Text>;

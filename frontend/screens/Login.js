@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -13,33 +12,35 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAppContext();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing fields', 'Please enter your email and password.');
+      alert('Missing fields', 'Please enter your email and password.');
       return;
     }
     if (!email.includes('@')) {
-      Alert.alert('Invalid email', 'Please enter a valid email address.');
+      alert('Invalid email', 'Please enter a valid email address.');
       return;
     }
     login(email.trim(), password);
   };
 
   const handleDemoLogin = () => {
-    login(null, null);
+    login('demo@smartplate.com', '123456');
   };
 
   const handleAdminDemo = () => {
-    login('admin_demo', null);
+    login('admin@smartplate.com', 'admin123');
   };
 
   return (

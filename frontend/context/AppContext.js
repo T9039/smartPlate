@@ -1,27 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api, setAuthToken } from '../lib/api';
-import {
-  mockUser,
-  mockInventory,
-  mockDonationHamper,
-  mockImpact,
-  mockCommunityDropOffs,
-  mockIncomingRequests,
-  CHALLENGE_TIERS,
-  mockAllUsers,
-  mockAllInventoryEntries,
-  mockDonationComplaints,
-} from '../data/mockData';
+import { useAlert } from './AlertContext';
+import { CATEGORIES, CHALLENGE_TIERS, mockDonationLocations } from '../data/mockData';
 import { COLORS, ECO_COLORS, PREMIUM_COLORS } from '../styles/theme';
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
+  const { alert, toast } = useAlert();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(mockUser);
+  const [user, setUser] = useState(null);
   const [inventory, setInventory] = useState([]);
   const [donationHamper, setDonationHamper] = useState([]);
-  const [impact, setImpact] = useState(mockImpact);
+  const [impact, setImpact] = useState({ itemsSaved: 0, moneySaved: 0, donationsMade: 0 });
 
   // AI & Notifications
   const [recipes, setRecipes] = useState([]);
@@ -34,14 +25,15 @@ export function AppProvider({ children }) {
   const [activeTheme, setActiveThemeState] = useState('default');
   const [challengeTiers, setChallengeTiers] = useState(CHALLENGE_TIERS);
 
-  // Community donations
-  const [communityDropOffs, setCommunityDropOffs] = useState(mockCommunityDropOffs);
-  const [incomingRequests, setIncomingRequests] = useState(mockIncomingRequests);
+  // Admin state (populated by admin API routes)
+  const [allUsers, setAllUsers] = useState([]);
+  const [allInventoryEntries, setAllInventoryEntries] = useState([]);
+  const [donationComplaints, setDonationComplaints] = useState([]);
 
-  // Admin state
-  const [allUsers, setAllUsers] = useState(mockAllUsers);
-  const [allInventoryEntries, setAllInventoryEntries] = useState(mockAllInventoryEntries);
-  const [donationComplaints, setDonationComplaints] = useState(mockDonationComplaints);
+  // Community donations (locations are static config, drop-offs come from DB)
+  const [communityDropOffs, setCommunityDropOffs] = useState({});
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [donationLocations] = useState(mockDonationLocations);
 
   // Initial Data Fetch
   useEffect(() => {
@@ -62,7 +54,7 @@ export function AppProvider({ children }) {
       setImpact(prev => ({
         ...prev,
         itemsSaved: analyticsData.itemsSaved,
-        donationsMade: analyticsData.donationsMade
+        donationsMade: analyticsData.donationsMade,
       }));
 
       try {
@@ -79,34 +71,37 @@ export function AppProvider({ children }) {
         const notifsData = await api.getNotifications();
         setNotifications(notifsData);
       } catch (e) { console.warn('Failed to fetch notifications', e); }
+
     } catch (e) {
-      console.warn("Failed to fetch data from API, using mock data for now.", e);
-      setInventory(mockInventory);
-      setDonationHamper(mockDonationHamper);
+      console.warn('Failed to fetch data from API:', e);
+      setInventory([]);
+      setDonationHamper([]);
     }
   };
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
   const login = async (email, password) => {
     try {
-      if (!email && !password) {
-        setUser((prev) => ({ ...prev, name: 'Demo User', role: 'home' }));
-        setIsAuthenticated(true);
-        return;
-      }
-      if (email === 'admin_demo') {
-        setUser((prev) => ({ ...prev, name: 'Admin User', role: 'admin' }));
-        setIsAuthenticated(true);
-        return;
-      }
-
       const res = await api.login(email, password);
       setAuthToken(res.token);
-      setUser({ ...res.user, role: 'home', activeTheme: 'default' });
+      setUser({
+        id: res.user.id,
+        name: res.user.username,
+        email: res.user.email,
+        role: res.user.role || 'home',
+        activeTheme: res.user.activeTheme || 'default',
+        avatar: res.user.avatar || null,
+      });
+      setActiveThemeState(res.user.activeTheme || 'default');
       setIsAuthenticated(true);
+      if (res.user.role === 'admin') {
+        toast('Welcome back, Admin', 'info');
+      } else {
+        toast('Logged in successfully', 'success');
+      }
     } catch (e) {
-      console.error(e);
-      alert('Login failed');
+      console.error('API Login Error', e);
+      alert('Login Failed', 'Invalid email or password.');
     }
   };
 
@@ -114,11 +109,19 @@ export function AppProvider({ children }) {
     try {
       const res = await api.register(username, email, password);
       setAuthToken(res.token);
-      setUser({ ...res.user, role: 'home', activeTheme: 'default' });
+      setUser({
+        id: res.user.id,
+        name: res.user.username,
+        email: res.user.email,
+        role: res.user.role || 'home',
+        activeTheme: 'default',
+        avatar: null,
+      });
       setIsAuthenticated(true);
+      toast('Account created successfully!', 'success');
     } catch (e) {
-      console.error(e);
-      alert('Registration failed');
+      console.error('API Register Error', e);
+      alert('Registration Failed', 'Email may already be in use.');
     }
   };
 
@@ -126,6 +129,14 @@ export function AppProvider({ children }) {
     setIsAuthenticated(false);
     setAuthToken(null);
     setUser(null);
+    setInventory([]);
+    setDonationHamper([]);
+    setNotifications([]);
+    setRecipes([]);
+    setNudges([]);
+    setUnlockedRewards([]);
+    setChallengeItemsUsedToday(0);
+    setImpact({ itemsSaved: 0, moneySaved: 0, donationsMade: 0 });
   };
 
   // ─── Inventory ─────────────────────────────────────────────────────────────
@@ -139,24 +150,14 @@ export function AppProvider({ children }) {
         price: item.price || 0,
         expiry_date: item.expiryDate,
         added_date: new Date().toISOString().split('T')[0],
-        emoji: item.emoji || '🥗'
-      };
-      
-      const addedItem = await api.addInventoryItem(dbItem);
-      
-      setInventory((prev) => [{...dbItem, id: addedItem.id.toString(), usedRecently: false, donated: false}, ...prev]);
-    } catch (e) {
-      console.error('API Error adding inventory', e);
-      // Fallback local update
-      const newItem = {
-        ...item,
-        id: Date.now().toString(),
-        addedDate: new Date().toISOString().split('T')[0],
-        usedRecently: false,
-        donated: false,
         emoji: item.emoji || '🥗',
       };
-      setInventory((prev) => [newItem, ...prev]);
+      const addedItem = await api.addInventoryItem(dbItem);
+      setInventory((prev) => [addedItem, ...prev]);
+      toast('Item added', 'success');
+    } catch (e) {
+      console.error('API Error adding inventory', e);
+      alert('Error', 'Could not save item. Please try again.');
     }
   };
 
@@ -183,7 +184,6 @@ export function AppProvider({ children }) {
     }
 
     try {
-      // Find the item first
       const item = inventory.find(i => i.id.toString() === id.toString());
       if (item) {
         await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'consumed' });
@@ -199,28 +199,18 @@ export function AppProvider({ children }) {
   // ─── Donations ─────────────────────────────────────────────────────────────
   const addToDonationHamper = async (item) => {
     if (donationHamper.find((d) => d.name === item.name)) return;
-    
+
     try {
       const dbDonation = {
         name: item.name,
         quantity: `${item.quantity} ${item.unit || ''}`.trim(),
         source_type: item.sourceType || 'manual',
-        emoji: item.emoji || '📦'
+        emoji: item.emoji || '📦',
       };
       const added = await api.addDonation(dbDonation);
       setDonationHamper((prev) => [...prev, { ...dbDonation, id: added.id.toString(), readyStatus: false }]);
     } catch (e) {
       console.error(e);
-      // Fallback
-      const donationItem = {
-        id: 'd' + Date.now(),
-        name: item.name,
-        quantity: `${item.quantity} ${item.unit || ''}`.trim(),
-        sourceType: item.sourceType || 'manual',
-        readyStatus: false,
-        emoji: item.emoji || '📦',
-      };
-      setDonationHamper((prev) => [...prev, donationItem]);
     }
 
     setImpact((prev) => ({ ...prev, donationsMade: prev.donationsMade + 1 }));
@@ -318,7 +308,7 @@ export function AppProvider({ children }) {
         isAuthenticated, user, inventory, donationHamper, impact,
         recipes, nudges, notifications,
         challengeItemsUsedToday, unlockedRewards, activeTheme, challengeTiers,
-        communityDropOffs, incomingRequests,
+        communityDropOffs, incomingRequests, donationLocations,
         allUsers, allInventoryEntries, donationComplaints,
         login, register, logout,
         addToInventory, removeFromInventory, markItemUsed,

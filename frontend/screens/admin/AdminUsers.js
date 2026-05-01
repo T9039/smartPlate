@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
+import { useAlert } from '../../context/AlertContext';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -18,6 +19,7 @@ const FILTERS = ['All', 'Active', 'Suspended'];
 
 export default function AdminUsers() {
   const { allUsers, adminRemoveUser, adminToggleSuspendUser } = useAppContext();
+  const { alert, toast } = useAlert();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
@@ -34,9 +36,9 @@ export default function AdminUsers() {
   }, [allUsers, filter, search]);
 
   const handleRemove = (user) => {
-    Alert.alert('Remove User?', `Permanently remove "${user.name}" from the platform? This cannot be undone.`, [
-      { text: 'Remove', style: 'destructive', onPress: () => { adminRemoveUser(user.id); Alert.alert('Removed', `${user.name} has been removed.`); } },
+    alert('Remove User?', `Permanently remove "${user.name}" from the platform? This cannot be undone.`, [
       { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => { adminRemoveUser(user.id); toast(`${user.name} removed.`, 'warning'); } },
     ]);
   };
 
@@ -45,9 +47,9 @@ export default function AdminUsers() {
     const message = user.status === 'suspended'
       ? `Reactivate ${user.name}'s account?`
       : `Suspend ${user.name}'s account? They will lose access until reactivated.`;
-    Alert.alert(`${action} User?`, message, [
-      { text: action, onPress: () => adminToggleSuspendUser(user.id) },
+    alert(`${action} User?`, message, [
       { text: 'Cancel', style: 'cancel' },
+      { text: action, style: user.status === 'suspended' ? 'default' : 'destructive', onPress: () => { adminToggleSuspendUser(user.id); toast(`User ${action.toLowerCase()}ed.`, 'info'); } },
     ]);
   };
 

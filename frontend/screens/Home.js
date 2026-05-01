@@ -2,14 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
-import { mockNotifications } from '../data/mockData';
 import StatCard from '../components/StatCard';
 import ActionCard from '../components/ActionCard';
 import InsightCard from '../components/InsightCard';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function HomeScreen({ navigation }) {
-  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests } = useAppContext();
+  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests, notifications } = useAppContext();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
@@ -33,12 +32,28 @@ export default function HomeScreen({ navigation }) {
     : 'All rewards unlocked! 🎉';
 
   const allNotifications = [
-    ...incomingRequests.filter((r) => r.status === 'pending').map((r) => ({
+    ...(incomingRequests || []).filter((r) => r.status === 'pending').map((r) => ({
       id: r.id, title: `Item Request from ${r.fromUser}`,
       message: `They want "${r.requestedItem}" from your donation hamper.`, time: 'Today', type: 'request',
     })),
-    ...mockNotifications,
+    ...(notifications || []),
   ];
+
+  const handleNotificationPress = (item) => {
+    setNotifVisible(false);
+    
+    // Determine target tab based on notification type or content
+    let targetTab = 'Home';
+    const title = item.title.toLowerCase();
+    const message = item.message.toLowerCase();
+
+    if (item.type === 'request') targetTab = 'Donations';
+    else if (item.type === 'warning' || title.includes('expir') || message.includes('expir')) targetTab = 'Inventory';
+    else if (title.includes('recipe') || message.includes('recipe')) targetTab = 'Recipes';
+    else if (title.includes('donat') || message.includes('donat') || item.type === 'success') targetTab = 'Donations';
+
+    navigation.navigate(targetTab);
+  };
 
   return (
     <View style={[styles.flex, { paddingTop: insets.top }]}>
@@ -145,7 +160,11 @@ export default function HomeScreen({ navigation }) {
               data={allNotifications}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <View style={styles.notifItem}>
+                <TouchableOpacity 
+                  style={styles.notifItem} 
+                  activeOpacity={0.7} 
+                  onPress={() => handleNotificationPress(item)}
+                >
                   <Text style={styles.notifEmoji}>
                     {item.type === 'warning' ? '⚠️' : item.type === 'success' ? '✅' : item.type === 'request' ? '📬' : 'ℹ️'}
                   </Text>
@@ -154,7 +173,7 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.notifItemMsg}>{item.message}</Text>
                     <Text style={styles.notifItemTime}>{item.time}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               )}
               ItemSeparatorComponent={() => <View style={styles.notifSep} />}
             />

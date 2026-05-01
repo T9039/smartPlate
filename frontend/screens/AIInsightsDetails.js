@@ -5,9 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import { isExpiringSoon, getDaysUntilExpiry } from '../data/mockData';
 import AppHeader from '../components/AppHeader';
 import EmptyState from '../components/EmptyState';
@@ -16,6 +16,7 @@ import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function AIInsightsDetailsScreen({ navigation }) {
   const { inventory, addToDonationHamper } = useAppContext();
+  const { toast } = useAlert();
 
   const expiringItems = inventory.filter((item) => isExpiringSoon(item.expiryDate) && !item.donated);
 
@@ -25,7 +26,7 @@ export default function AIInsightsDetailsScreen({ navigation }) {
 
   const handleDonate = (item) => {
     addToDonationHamper({ ...item, sourceType: 'inventory' });
-    Alert.alert('Added to hamper ✅', `${item.name} has been added to your donation hamper.`);
+    toast(`${item.name} has been added to your donation hamper.`, 'success');
   };
 
   return (

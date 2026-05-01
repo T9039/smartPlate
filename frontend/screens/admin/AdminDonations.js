@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
-import { mockAnalyticsData, mockDonationLocations } from '../../data/mockData';
+import { useAlert } from '../../context/AlertContext';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -19,7 +19,8 @@ const A = {
 const FILTERS = ['All', 'Open', 'Resolved'];
 
 export default function AdminDonations() {
-  const { donationComplaints, adminResolveComplaint } = useAppContext();
+  const { donationComplaints, adminResolveComplaint, donationLocations } = useAppContext();
+  const { alert, toast } = useAlert();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState('All');
   const [resolveModal, setResolveModal] = useState(false);
@@ -38,10 +39,10 @@ export default function AdminDonations() {
   const openResolveModal = (complaint) => { setResolveTarget(complaint); setResolutionText(''); setResolveModal(true); };
 
   const handleResolve = () => {
-    if (!resolutionText.trim()) { Alert.alert('Enter a resolution', 'Please describe how this complaint was resolved.'); return; }
+    if (!resolutionText.trim()) { alert('Note required', 'Please add a resolution note.'); return; }
     adminResolveComplaint(resolveTarget.id, resolutionText.trim());
     setResolveModal(false);
-    Alert.alert('Resolved ✅', 'The complaint has been marked as resolved.');
+    toast('Issue resolved ✅', 'success');
   };
 
   const typeLabel = (type) => type === 'failed_pickup' ? '📦 Failed Pickup' : '📩 Complaint';
@@ -58,7 +59,7 @@ export default function AdminDonations() {
       {/* Quick stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{mockAnalyticsData.totalDonations}</Text>
+          <Text style={styles.statValue}>0</Text>
           <Text style={styles.statLabel}>Total Donations</Text>
         </View>
         <View style={styles.statCard}>
@@ -66,7 +67,7 @@ export default function AdminDonations() {
           <Text style={styles.statLabel}>Open Issues</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{mockDonationLocations.length}</Text>
+          <Text style={styles.statValue}>{donationLocations.length}</Text>
           <Text style={styles.statLabel}>Drop-off Points</Text>
         </View>
       </View>
@@ -75,7 +76,7 @@ export default function AdminDonations() {
       <View style={styles.locationOverview}>
         <Text style={styles.locationOverviewTitle}>Drop-off Locations</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SPACING.sm }}>
-          {mockDonationLocations.map((loc) => (
+          {donationLocations.map((loc) => (
             <View key={loc.id} style={styles.locationChip}>
               <Text style={styles.locationChipName}>{loc.name}</Text>
               <Text style={styles.locationChipSlots}>{loc.slots.length} slots</Text>

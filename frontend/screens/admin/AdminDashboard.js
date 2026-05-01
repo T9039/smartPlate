@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
-import { mockAnalyticsData } from '../../data/mockData';
+import { useAlert } from '../../context/AlertContext';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -26,17 +26,20 @@ function StatBox({ label, value, emoji, color }) {
 
 export default function AdminDashboard({ navigation }) {
   const { allUsers, allInventoryEntries, donationComplaints, logout } = useAppContext();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
 
   const activeUsers = allUsers.filter((u) => u.status === 'active').length;
   const flaggedEntries = allInventoryEntries.filter((e) => e.flagged).length;
   const openComplaints = donationComplaints.filter((c) => c.status === 'open').length;
-  const data = mockAnalyticsData;
+  // Placeholder stats until admin analytics API route is implemented
+  const totalFoodSaved = 0;
+  const totalDonations = 0;
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
+    alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Log Out', style: 'destructive', onPress: () => logout() },
+      { text: 'Cancel', style: 'cancel' },
     ]);
   };
 
@@ -63,8 +66,8 @@ export default function AdminDashboard({ navigation }) {
         <View style={styles.statsGrid}>
           <StatBox label="Total Users" value={allUsers.length} emoji="👥" color={A.primary} />
           <StatBox label="Active Users" value={activeUsers} emoji="✅" color={A.success} />
-          <StatBox label="Food Saved" value={`${data.totalFoodSaved} kg`} emoji="🥗" color={A.primaryMed} />
-          <StatBox label="Donations" value={data.totalDonations} emoji="🤝" color={A.info} />
+          <StatBox label="Food Saved" value={`${totalFoodSaved} kg`} emoji="🥗" color={A.primaryMed} />
+          <StatBox label="Donations" value={totalDonations} emoji="🤝" color={A.info} />
         </View>
 
         {/* Alert cards */}

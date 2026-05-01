@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import { isExpiringSoon } from '../data/mockData';
 import SearchBar from '../components/SearchBar';
 import FilterChips from '../components/FilterChips';
@@ -13,6 +14,7 @@ const FILTERS = ['All', 'Expiring Soon', 'Used Recently'];
 
 export default function InventoryScreen({ navigation }) {
   const { inventory, markItemUsed, addToDonationHamper } = useAppContext();
+  const { alert } = useAlert();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
@@ -33,16 +35,16 @@ export default function InventoryScreen({ navigation }) {
   }, [inventory, filter, search]);
 
   const handleUseUp = (item) => {
-    Alert.alert('Use up this item?', `Mark "${item.name}" as used up? It will be removed from your inventory.`, [
-      { text: 'Yes — Use It Up', onPress: () => { markItemUsed(item.id); Alert.alert('Done! ✅', `${item.name} has been used up and removed.`); } },
+    alert('Use up this item?', `Mark "${item.name}" as used up? It will be removed from your inventory.`, [
+      { text: 'Yes — Use It Up', onPress: () => { markItemUsed(item.id); } },
       { text: 'Find Recipes', onPress: () => navigation.navigate('Recipes') },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
 
   const handleDonate = (item) => {
-    Alert.alert('Add to donation hamper?', `Add "${item.name}" to your donation hamper? It will be removed from your inventory.`, [
-      { text: 'Add to Hamper', onPress: () => { addToDonationHamper({ ...item, sourceType: 'inventory' }); Alert.alert('Added! 🤝', `${item.name} added to donation hamper and removed from inventory.`); } },
+    alert('Add to donation hamper?', `Add "${item.name}" to your donation hamper? It will be removed from your inventory.`, [
+      { text: 'Add to Hamper', onPress: () => { addToDonationHamper({ ...item, sourceType: 'inventory' }); } },
       { text: 'Go to Donations', onPress: () => navigation.navigate('Donations') },
       { text: 'Cancel', style: 'cancel' },
     ]);

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import DonationModal from '../components/DonationModal';
 import EmptyState from '../components/EmptyState';
 import { mockDonationLocations } from '../data/mockData';
@@ -9,6 +10,7 @@ import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function DonationsScreen({ navigation }) {
   const { donationHamper, removeFromDonationHamper, communityDropOffs, incomingRequests, requestCommunityItem, acceptIncomingRequest, declineIncomingRequest } = useAppContext();
+  const { alert, toast } = useAlert();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
@@ -20,28 +22,28 @@ export default function DonationsScreen({ navigation }) {
   const [booking, setBooking] = useState(null);
 
   const handleRemove = (item) => {
-    Alert.alert('Remove item?', `Remove "${item.name}" from the hamper?`, [
+    alert('Remove item?', `Remove "${item.name}" from the hamper?`, [
       { text: 'Remove', style: 'destructive', onPress: () => removeFromDonationHamper(item.id) },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
 
   const openBookingModal = () => {
-    if (donationHamper.length === 0) { Alert.alert('Empty hamper', 'Add some items to your hamper before confirming.'); return; }
+    if (donationHamper.length === 0) { alert('Empty hamper', 'Add some items to your hamper before confirming.'); return; }
     setSelectedLocation(null); setSelectedSlot(null); setBookingModalVisible(true);
   };
 
   const handleConfirmBooking = () => {
-    if (!selectedLocation) { Alert.alert('Select a location', 'Please choose a drop-off location.'); return; }
-    if (!selectedSlot) { Alert.alert('Select a time slot', 'Please choose a time slot.'); return; }
+    if (!selectedLocation) { alert('Select a location', 'Please choose a drop-off location.'); return; }
+    if (!selectedSlot) { alert('Select a time slot', 'Please choose a time slot.'); return; }
     setBooking({ location: selectedLocation, slot: selectedSlot });
     setBookingModalVisible(false);
-    Alert.alert('🎉 Donation booked!', `Drop off at ${selectedLocation.name}\n${selectedSlot}\n\nThank you for giving back!`, [{ text: 'Wonderful!' }]);
+    alert('🎉 Donation booked!', `Drop off at ${selectedLocation.name}\n${selectedSlot}\n\nThank you for giving back!`, [{ text: 'Wonderful!' }]);
   };
 
   const handleRequestItem = (dropOff, itemName) => {
-    Alert.alert('Request this item?', `Send a request to ${dropOff.user} for "${itemName}"?`, [
-      { text: 'Send Request', onPress: () => { requestCommunityItem(dropOff.id, itemName); Alert.alert('Request sent! 📬', `${dropOff.user} will be notified.`); } },
+    alert('Request this item?', `Send a request to ${dropOff.user} for "${itemName}"?`, [
+      { text: 'Send Request', onPress: () => { requestCommunityItem(dropOff.id, itemName); toast('Request sent! 📬', 'success'); } },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
@@ -73,7 +75,7 @@ export default function DonationsScreen({ navigation }) {
                   <Text style={styles.requestItem}>is requesting "{req.requestedItem}"</Text>
                 </View>
                 <View style={styles.requestActions}>
-                  <TouchableOpacity style={styles.acceptBtn} onPress={() => { acceptIncomingRequest(req.id); Alert.alert('Reserved! ✅', `"${req.requestedItem}" reserved for ${req.fromUser}.`); }} activeOpacity={0.8}>
+                  <TouchableOpacity style={styles.acceptBtn} onPress={() => { acceptIncomingRequest(req.id); toast('Item reserved! ✅', 'success'); }} activeOpacity={0.8}>
                     <Text style={styles.acceptBtnText}>Accept</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.declineBtn} onPress={() => declineIncomingRequest(req.id)} activeOpacity={0.8}>
@@ -175,7 +177,7 @@ export default function DonationsScreen({ navigation }) {
         {donationHamper.length > 0 && (
           <TouchableOpacity
             style={[styles.confirmBtn, booking && { backgroundColor: C.primary }]}
-            onPress={booking ? () => Alert.alert('Already booked!', `Donation booked at ${booking.location.name} for ${booking.slot}.`) : openBookingModal}
+            onPress={booking ? () => alert('Already booked!', `Donation booked at ${booking.location.name} for ${booking.slot}.`) : openBookingModal}
             activeOpacity={0.85}
           >
             <Text style={styles.confirmBtnText}>{booking ? '✅  Donation Booked — View Details' : '📍  Confirm Donation Bundle'}</Text>

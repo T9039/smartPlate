@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, TextInput, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
+import { useAlert } from '../../context/AlertContext';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -18,6 +19,7 @@ const FILTERS = ['All', 'Flagged', 'Clean'];
 
 export default function AdminFoodMonitor() {
   const { allInventoryEntries, adminRemoveEntry, adminFlagEntry, adminUnflagEntry } = useAppContext();
+  const { alert, toast } = useAlert();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -38,19 +40,19 @@ export default function AdminFoodMonitor() {
   }, [allInventoryEntries, filter, search]);
 
   const handleRemove = (entry) => {
-    Alert.alert('Remove Entry?', `Remove "${entry.name}" added by ${entry.userName}?`, [
-      { text: 'Remove', style: 'destructive', onPress: () => { adminRemoveEntry(entry.id); Alert.alert('Removed ✅', `"${entry.name}" has been removed.`); } },
+    alert('Remove Entry?', `Remove "${entry.name}" added by ${entry.userName}?`, [
       { text: 'Cancel', style: 'cancel' },
+      { text: 'Remove', style: 'destructive', onPress: () => { adminRemoveEntry(entry.id); toast(`"${entry.name}" removed.`, 'warning'); } },
     ]);
   };
 
   const openFlagModal = (entry) => { setFlagTarget(entry); setFlagReason(''); setFlagModal(true); };
 
   const handleFlag = () => {
-    if (!flagReason.trim()) { Alert.alert('Enter a reason', 'Please provide a reason for flagging this entry.'); return; }
+    if (!flagReason.trim()) { alert('Enter a reason', 'Please provide a reason for flagging this entry.'); return; }
     adminFlagEntry(flagTarget.id, flagReason.trim());
     setFlagModal(false);
-    Alert.alert('Flagged ⚠️', `"${flagTarget.name}" has been flagged.`);
+    toast(`"${flagTarget.name}" flagged.`, 'warning');
   };
 
   const flaggedCount = allInventoryEntries.filter((e) => e.flagged).length;

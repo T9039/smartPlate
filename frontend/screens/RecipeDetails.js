@@ -5,9 +5,9 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import AppHeader from '../components/AppHeader';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
@@ -36,6 +36,7 @@ const STATUS_CONFIG = {
 export default function RecipeDetailsScreen({ navigation, route }) {
   const { recipe } = route.params;
   const { markItemUsed } = useAppContext();
+  const { alert } = useAlert();
 
   const matchColor =
     recipe.matchPercent >= 85
@@ -45,7 +46,7 @@ export default function RecipeDetailsScreen({ navigation, route }) {
       : COLORS.textLight;
 
   const handleCookedIt = () => {
-    Alert.alert(
+    alert(
       '🎉 Great job!',
       `You cooked "${recipe.title}"! Expiring ingredients have been marked as used.`,
       [

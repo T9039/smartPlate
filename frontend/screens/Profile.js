@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Switch } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import ProfileOptionRow from '../components/ProfileOptionRow';
 import PrimaryButton from '../components/PrimaryButton';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function ProfileScreen() {
   const { user, logout, updateUser, unlockedRewards, activeTheme, setActiveTheme, challengeTiers, challengeItemsUsedToday } = useAppContext();
+  const { alert, toast } = useAlert();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
@@ -28,16 +30,16 @@ export default function ProfileScreen() {
   const [alertSensitivity, setAlertSensitivity] = useState(true);
 
   const handleSaveProfile = () => {
-    if (!editName.trim() || !editEmail.trim()) { Alert.alert('Missing fields', 'Please fill in your name and email.'); return; }
+    if (!editName.trim() || !editEmail.trim()) { alert('Missing fields', 'Please fill in your name and email.'); return; }
     updateUser({ name: editName.trim(), email: editEmail.trim() });
     setEditModal(false);
-    Alert.alert('Saved! ✅', 'Your profile has been updated.');
+    toast('Your profile has been updated.', 'success');
   };
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
+    alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Log Out', style: 'destructive', onPress: () => logout() },
+      { text: 'Cancel', style: 'cancel' },
     ]);
   };
 

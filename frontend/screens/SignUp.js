@@ -5,18 +5,19 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
+import { useAlert } from '../context/AlertContext';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function SignUpScreen({ navigation }) {
   const { register } = useAppContext();
+  const { alert } = useAlert();
   const insets = useSafeAreaInsets();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,19 +26,19 @@ export default function SignUpScreen({ navigation }) {
 
   const handleSignUp = () => {
     if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Missing fields', 'Please fill in all fields.');
+      alert('Missing fields', 'Please fill in all fields.');
       return;
     }
     if (!email.includes('@')) {
-      Alert.alert('Invalid email', 'Please enter a valid email address.');
+      alert('Invalid email', 'Please enter a valid email address.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Weak password', 'Password must be at least 6 characters.');
+      alert('Weak password', 'Password must be at least 6 characters.');
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Passwords do not match', 'Please make sure your passwords match.');
+      alert('Passwords do not match', 'Please make sure your passwords match.');
       return;
     }
     register(fullName.trim(), email.trim(), password);

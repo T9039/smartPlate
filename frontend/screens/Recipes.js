@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockRecipes } from '../data/mockData';
 import RecipeCard from '../components/RecipeCard';
 import EmptyState from '../components/EmptyState';
-import { useColors } from '../context/AppContext';
+import { useColors, useAppContext } from '../context/AppContext';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function RecipesScreen({ navigation }) {
   const C = useColors();
+  const { recipes } = useAppContext();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const [showAll, setShowAll] = useState(false);
-  const displayedRecipes = showAll ? mockRecipes : mockRecipes.slice(0, 3);
+  const displayedRecipes = showAll ? recipes : recipes.slice(0, 3);
 
   return (
     <View style={[styles.flex, { paddingTop: insets.top }]}>
@@ -40,9 +40,9 @@ export default function RecipesScreen({ navigation }) {
           ))
         )}
 
-        {!showAll && mockRecipes.length > 3 && (
+        {!showAll && recipes.length > 3 && (
           <TouchableOpacity style={styles.viewMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.8}>
-            <Text style={styles.viewMoreText}>View More Recipes ({mockRecipes.length - 3} more)</Text>
+            <Text style={styles.viewMoreText}>View More Recipes ({recipes.length - 3} more)</Text>
           </TouchableOpacity>
         )}
         {showAll && (
