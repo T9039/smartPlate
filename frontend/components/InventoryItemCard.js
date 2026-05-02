@@ -5,7 +5,7 @@ import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 import { getExpiryLabel, getDaysUntilExpiry, getValidIcon } from '../data/mockData';
 import Badge from './Badge';
 
-export default function InventoryItemCard({ item, onUseUp, onDonate }) {
+export default function InventoryItemCard({ item, onPress, onUseUp, onDonate }) {
   const days = getDaysUntilExpiry(item.expiryDate);
   const expiring = days <= 5;
   const expired = days < 0;
@@ -14,7 +14,11 @@ export default function InventoryItemCard({ item, onUseUp, onDonate }) {
   const badgeLabel = getExpiryLabel(item.expiryDate);
 
   return (
-    <View style={[styles.card, expiring && styles.cardExpiring]}>
+    <TouchableOpacity 
+      style={[styles.card, expiring && styles.cardExpiring]} 
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.iconWrap}>
         <Ionicons name={getValidIcon(item.emoji)} size={24} color={COLORS.primary} />
       </View>
@@ -37,7 +41,7 @@ export default function InventoryItemCard({ item, onUseUp, onDonate }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

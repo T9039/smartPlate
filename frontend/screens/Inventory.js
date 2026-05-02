@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
+import { api } from '../lib/api';
 import { isExpiringSoon } from '../data/mockData';
 import SearchBar from '../components/SearchBar';
 import FilterChips from '../components/FilterChips';
@@ -20,6 +21,10 @@ export default function InventoryScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
+  
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   const expiringSoonCount = inventory.filter((i) => isExpiringSoon(i.expiryDate)).length;
 
@@ -48,6 +53,24 @@ export default function InventoryScreen({ navigation }) {
       { text: 'Go to Donations', onPress: () => navigation.navigate('Donations') },
       { text: 'Cancel', style: 'cancel' },
     ]);
+  };
+
+  const handleItemPress = async (item) => {
+    setSelectedItem(item);
+    setInsights(item.insights || null);
+    
+    if (!item.insights) {
+      setLoadingInsights(true);
+      try {
+        const data = await api.getInventoryInsights(item.id);
+        setInsights(data);
+      } catch (err) {
+        console.error(err);
+        alert('Error', 'Failed to load storage tips');
+      } finally {
+        setLoadingInsights(false);
+      }
+    }
   };
 
   return (
@@ -79,7 +102,13 @@ export default function InventoryScreen({ navigation }) {
             message={search ? `No items matching "${search}"` : filter !== 'All' ? 'No items in this category right now.' : 'Your inventory is empty. Add your first item!'} />
         ) : (
           filtered.map((item) => (
-            <InventoryItemCard key={item.id} item={item} onUseUp={() => handleUseUp(item)} onDonate={() => handleDonate(item)} />
+            <InventoryItemCard 
+              key={item.id} 
+              item={item} 
+              onPress={() => handleItemPress(item)}
+              onUseUp={() => handleUseUp(item)} 
+              onDonate={() => handleDonate(item)} 
+            />
           ))
         )}
 
@@ -93,6 +122,58 @@ export default function InventoryScreen({ navigation }) {
           </View>
         </View>
       </ScrollView>
+
+      {/* Item Details Modal */}
+      <Modal visible={!!selectedItem} transparent animationType="slide" onRequestClose={() => setSelectedItem(null)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {selectedItem && (
+              <>
+                <Text style={styles.modalTitle}>{selectedItem.name}</Text>
+                <Text style={styles.modalSubtitle}>{selectedItem.category} • Added {new Date(selectedItem.addedDate).toLocaleDateString()}</Text>
+                
+                <View style={styles.insightsContainer}>
+                  <Text style={styles.insightsHeader}>✨ AI Storage Tips</Text>
+                  
+                  {loadingInsights ? (
+                    <ActivityIndicator size="small" color={C.primary} style={{ marginVertical: SPACING.lg }} />
+                  ) : insights ? (
+                    <View style={styles.insightsBody}>
+                      <View style={styles.insightRow}>
+                        <Text style={styles.insightIcon}>🧊</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.insightLabel}>Storage</Text>
+                          <Text style={styles.insightText}>{insights.storageTip}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.insightRow}>
+                        <Text style={styles.insightIcon}>⏳</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.insightLabel}>Shelf Life</Text>
+                          <Text style={styles.insightText}>{insights.shelfLife}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.insightRow}>
+                        <Text style={styles.insightIcon}>💡</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.insightLabel}>Fun Fact</Text>
+                          <Text style={styles.insightText}>{insights.funFact}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  ) : (
+                    <Text style={styles.errorText}>Could not load tips.</Text>
+                  )}
+                </View>
+
+                <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedItem(null)}>
+                  <Text style={styles.closeBtnText}>Close</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -125,4 +206,18 @@ const makeStyles = (C) => StyleSheet.create({
   tipText: { fontSize: 13, color: C.textMid, lineHeight: 19, marginBottom: SPACING.sm },
   viewRecipesBtn: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, backgroundColor: C.primaryMed, borderRadius: RADIUS.pill },
   viewRecipesBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: C.surface, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, padding: SPACING.xl, paddingBottom: SPACING.xxl },
+  modalTitle: { fontSize: 24, fontWeight: '800', color: C.textDark, marginBottom: 2 },
+  modalSubtitle: { fontSize: 14, color: C.textLight, marginBottom: SPACING.lg },
+  insightsContainer: { backgroundColor: C.paleGreen, borderRadius: RADIUS.lg, padding: SPACING.lg, marginBottom: SPACING.xl },
+  insightsHeader: { fontSize: 16, fontWeight: '700', color: C.primaryMed, marginBottom: SPACING.md },
+  insightsBody: { gap: SPACING.md },
+  insightRow: { flexDirection: 'row', gap: SPACING.md },
+  insightIcon: { fontSize: 20 },
+  insightLabel: { fontSize: 12, fontWeight: '700', color: C.textMid, textTransform: 'uppercase', marginBottom: 2 },
+  insightText: { fontSize: 14, color: C.textDark, lineHeight: 20 },
+  errorText: { color: C.warning, fontSize: 14, fontStyle: 'italic' },
+  closeBtn: { backgroundColor: C.background, borderWidth: 1, borderColor: C.border, padding: SPACING.md, borderRadius: RADIUS.md, alignItems: 'center' },
+  closeBtnText: { color: C.textDark, fontSize: 16, fontWeight: '600' },
 });

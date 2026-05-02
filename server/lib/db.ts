@@ -34,6 +34,7 @@ sqliteDb.exec(`
         added_date      DATE,
         barcode         TEXT,
         emoji           TEXT,
+        insights        TEXT,
         used_recently   BOOLEAN DEFAULT 0,
         expiring_soon   BOOLEAN DEFAULT 0,
         donated         BOOLEAN DEFAULT 0,

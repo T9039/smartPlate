@@ -16,7 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
-import { CATEGORIES, CATEGORY_ICONS } from '../data/mockData';
+import { CATEGORIES } from '../data/mockData';
+import { getFoodIcon } from '../data/foodDictionary';
 import AppHeader from '../components/AppHeader';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
@@ -109,7 +110,7 @@ export default function AddFoodScreen({ navigation }) {
       price: Number(price) || 0,
       expiryDate: expiryDate.trim(),
       expiringSoon: false,
-      emoji: CATEGORY_ICONS[category] || 'nutrition-outline',
+      emoji: getFoodIcon(name, category),
     });
 
     toast(`${name.trim()} added to inventory ✅`, 'success');

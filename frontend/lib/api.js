@@ -45,6 +45,12 @@ export const api = {
     return res.json();
   },
   
+  getInventoryInsights: async (id) => {
+    const res = await fetch(`${API_URL}/inventory/${id}/insights`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get insights');
+    return res.json();
+  },
+  
   addInventoryItem: async (item) => {
     const res = await fetch(`${API_URL}/inventory`, {
       method: 'POST',

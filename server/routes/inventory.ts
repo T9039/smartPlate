@@ -1,6 +1,7 @@
 import { Router, Response } from "express";
 import db from "../lib/db.js";
 import { AuthenticatedRequest, authenticateToken } from "../middleware/auth.js";
+import { getFoodPreservationTips } from "../lib/ai.js";
 
 const router = Router();
 
@@ -22,6 +23,7 @@ const toInventoryItem = (row: any) => ({
   donated:      !!row.donated,
   flagged:      !!row.flagged,
   flagReason:   row.flag_reason,
+  insights:     (() => { try { return row.insights ? JSON.parse(row.insights) : null; } catch(e) { return null; } })(),
   createdAt:    row.created_at,
 });
 
@@ -76,6 +78,31 @@ router.put("/:id", authenticateToken, async (req: AuthenticatedRequest, res: Res
 router.delete("/:id", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   await db.query("DELETE FROM inventory WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);
   res.sendStatus(204);
+});
+
+router.get("/:id/insights", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const items = await db.query("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]) as any[];
+    if (items.length === 0) return res.status(404).json({ error: "Item not found" });
+    
+    const item = items[0];
+    
+    // Return cached insights if they exist
+    if (item.insights) {
+      return res.json(JSON.parse(item.insights));
+    }
+    
+    // Otherwise, fetch from AI
+    const insights = await getFoodPreservationTips(item.name);
+    
+    // Cache it in the database
+    await db.query("UPDATE inventory SET insights = ? WHERE id = ?", [JSON.stringify(insights), item.id]);
+    
+    res.json(insights);
+  } catch (error) {
+    console.error("Failed to fetch insights:", error);
+    res.status(500).json({ error: "Failed to fetch storage tips" });
+  }
 });
 
 export default router;
