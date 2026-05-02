@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
 import DonationModal from '../components/DonationModal';
+import BottomSheetModal from '../components/BottomSheetModal';
 import EmptyState from '../components/EmptyState';
 import { mockDonationLocations, getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
@@ -191,16 +192,8 @@ export default function DonationsScreen({ navigation }) {
         onAddNew={() => { setAddModalVisible(false); navigation.navigate('AddFood'); }} />
 
       {/* Booking modal */}
-      <Modal visible={bookingModalVisible} animationType="slide" transparent onRequestClose={() => setBookingModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.bookingSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Book Drop-off</Text>
-              <TouchableOpacity onPress={() => setBookingModalVisible(false)}>
-                <Ionicons name="close" size={24} color={C.textLight} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView contentContainerStyle={styles.modalBody}>
+      <BottomSheetModal visible={bookingModalVisible} onClose={() => setBookingModalVisible(false)} title="Book Drop-off">
+        <ScrollView contentContainerStyle={styles.modalBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.modalSectionLabel}>Select a Location</Text>
               {mockDonationLocations.map((loc) => (
                 <TouchableOpacity key={loc.id}
@@ -232,9 +225,7 @@ export default function DonationsScreen({ navigation }) {
                 <Text style={styles.bookConfirmBtnText}>✅  Confirm Booking</Text>
               </TouchableOpacity>
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -309,12 +300,7 @@ const makeStyles = (C) => StyleSheet.create({
   confirmBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   emptyAddBtn: { marginTop: SPACING.md, backgroundColor: C.primaryMed, borderRadius: RADIUS.md, paddingHorizontal: SPACING.lg, paddingVertical: 12 },
   emptyAddBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  bookingSheet: { backgroundColor: C.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', ...SHADOW.strong },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: C.divider },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
-  modalClose: { fontSize: 18, color: C.textLight },
-  modalBody: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
+  modalBody: { paddingHorizontal: 0, paddingBottom: SPACING.xxl },
   modalSectionLabel: { fontSize: 13, fontWeight: '700', color: C.textLight, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: SPACING.sm },
   locationOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.card, borderRadius: RADIUS.md, padding: SPACING.md, marginBottom: SPACING.sm, borderWidth: 1.5, borderColor: C.border },
   locationOptionSelected: { borderColor: C.primaryMed, backgroundColor: C.paleGreen },

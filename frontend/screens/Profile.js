@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput, Switch } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
 import ProfileOptionRow from '../components/ProfileOptionRow';
+import BottomSheetModal from '../components/BottomSheetModal';
 import PrimaryButton from '../components/PrimaryButton';
 import { getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
@@ -141,154 +142,106 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Edit Profile Modal */}
-      <Modal visible={editModal} animationType="slide" transparent onRequestClose={() => setEditModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
-              <TouchableOpacity onPress={() => setEditModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <Text style={styles.fieldLabel}>Full Name</Text>
-              <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholder="Your name" placeholderTextColor={C.textMuted} />
-              <Text style={styles.fieldLabel}>Email</Text>
-              <TextInput style={styles.input} value={editEmail} onChangeText={setEditEmail} placeholder="your@email.com" placeholderTextColor={C.textMuted} keyboardType="email-address" autoCapitalize="none" />
-              <PrimaryButton title="Save Changes" onPress={handleSaveProfile} />
-            </View>
-          </View>
+      <BottomSheetModal visible={editModal} onClose={() => setEditModal(false)} title="Edit Profile">
+        <View style={styles.modalBody}>
+          <Text style={styles.fieldLabel}>Full Name</Text>
+          <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholder="Your name" placeholderTextColor={C.textMuted} />
+          <Text style={styles.fieldLabel}>Email</Text>
+          <TextInput style={styles.input} value={editEmail} onChangeText={setEditEmail} placeholder="your@email.com" placeholderTextColor={C.textMuted} keyboardType="email-address" autoCapitalize="none" />
+          <PrimaryButton title="Save Changes" onPress={handleSaveProfile} />
         </View>
-      </Modal>
+      </BottomSheetModal>
 
       {/* Notifications Modal */}
-      <Modal visible={notifModal} animationType="slide" transparent onRequestClose={() => setNotifModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Notifications</Text>
-              <TouchableOpacity onPress={() => setNotifModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+      <BottomSheetModal visible={notifModal} onClose={() => setNotifModal(false)} title="Notifications">
+        <View style={styles.modalBody}>
+          {[
+            { label: 'Expiry Alerts', sub: 'Warn when food is about to expire', value: expiryAlerts, setter: setExpiryAlerts },
+            { label: 'Recipe Suggestions', sub: 'Get notified about new recipe matches', value: recipeAlerts, setter: setRecipeAlerts },
+            { label: 'Donation Reminders', sub: 'Remind me to submit my hamper', value: donationReminders, setter: setDonationReminders },
+          ].map((item) => (
+            <View key={item.label} style={styles.toggleRow}>
+              <View style={{ flex: 1, marginRight: SPACING.md }}>
+                <Text style={styles.toggleLabel}>{item.label}</Text>
+                <Text style={styles.toggleSub}>{item.sub}</Text>
+              </View>
+              <Switch value={item.value} onValueChange={item.setter} trackColor={{ false: C.border, true: C.sage }} thumbColor={item.value ? C.primaryMed : C.textMuted} />
             </View>
-            <View style={styles.modalBody}>
-              {[
-                { label: 'Expiry Alerts', sub: 'Warn when food is about to expire', value: expiryAlerts, setter: setExpiryAlerts },
-                { label: 'Recipe Suggestions', sub: 'Get notified about new recipe matches', value: recipeAlerts, setter: setRecipeAlerts },
-                { label: 'Donation Reminders', sub: 'Remind me to submit my hamper', value: donationReminders, setter: setDonationReminders },
-              ].map((item) => (
-                <View key={item.label} style={styles.toggleRow}>
-                  <View style={{ flex: 1, marginRight: SPACING.md }}>
-                    <Text style={styles.toggleLabel}>{item.label}</Text>
-                    <Text style={styles.toggleSub}>{item.sub}</Text>
-                  </View>
-                  <Switch value={item.value} onValueChange={item.setter} trackColor={{ false: C.border, true: C.sage }} thumbColor={item.value ? C.primaryMed : C.textMuted} />
-                </View>
-              ))}
-            </View>
-          </View>
+          ))}
         </View>
-      </Modal>
+      </BottomSheetModal>
 
       {/* AI Preferences Modal */}
-      <Modal visible={aiModal} animationType="slide" transparent onRequestClose={() => setAiModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>AI Preferences</Text>
-              <TouchableOpacity onPress={() => setAiModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+      <BottomSheetModal visible={aiModal} onClose={() => setAiModal(false)} title="AI Preferences">
+        <View style={styles.modalBody}>
+          {[
+            { label: 'Budget-friendly Recipes', sub: 'Prioritise low-cost recipe suggestions', value: suggestBudget, setter: setSuggestBudget },
+            { label: 'Early Expiry Alerts', sub: 'Alert 5+ days before expiry (high sensitivity)', value: alertSensitivity, setter: setAlertSensitivity },
+          ].map((item) => (
+            <View key={item.label} style={styles.toggleRow}>
+              <View style={{ flex: 1, marginRight: SPACING.md }}>
+                <Text style={styles.toggleLabel}>{item.label}</Text>
+                <Text style={styles.toggleSub}>{item.sub}</Text>
+              </View>
+              <Switch value={item.value} onValueChange={item.setter} trackColor={{ false: C.border, true: C.sage }} thumbColor={item.value ? C.primaryMed : C.textMuted} />
             </View>
-            <View style={styles.modalBody}>
-              {[
-                { label: 'Budget-friendly Recipes', sub: 'Prioritise low-cost recipe suggestions', value: suggestBudget, setter: setSuggestBudget },
-                { label: 'Early Expiry Alerts', sub: 'Alert 5+ days before expiry (high sensitivity)', value: alertSensitivity, setter: setAlertSensitivity },
-              ].map((item) => (
-                <View key={item.label} style={styles.toggleRow}>
-                  <View style={{ flex: 1, marginRight: SPACING.md }}>
-                    <Text style={styles.toggleLabel}>{item.label}</Text>
-                    <Text style={styles.toggleSub}>{item.sub}</Text>
-                  </View>
-                  <Switch value={item.value} onValueChange={item.setter} trackColor={{ false: C.border, true: C.sage }} thumbColor={item.value ? C.primaryMed : C.textMuted} />
-                </View>
-              ))}
-              <View style={styles.aiNote}><Text style={styles.aiNoteText}>🤖 AI suggestions are generated based on your inventory and usage patterns.</Text></View>
-            </View>
-          </View>
+          ))}
+          <View style={styles.aiNote}><Text style={styles.aiNoteText}>🤖 AI suggestions are generated based on your inventory and usage patterns.</Text></View>
         </View>
-      </Modal>
+      </BottomSheetModal>
 
       {/* Rewards Modal */}
-      <Modal visible={rewardsModal} animationType="slide" transparent onRequestClose={() => setRewardsModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>My Rewards</Text>
-              <TouchableOpacity onPress={() => setRewardsModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <Text style={styles.rewardsIntro}>Use items in the Use It Up Challenge to unlock exclusive rewards!</Text>
-              {challengeTiers.map((tier) => {
-                const isUnlocked = unlockedRewards.includes(tier.reward);
-                return (
-                  <View key={tier.reward} style={[styles.rewardRow, isUnlocked && styles.rewardRowUnlocked]}>
-                    <View style={[styles.rewardIcon, isUnlocked && styles.rewardIconUnlocked]}>
-                      <Ionicons name={isUnlocked ? getValidIcon(tier.emoji) : 'lock-closed-outline'} size={24} color={isUnlocked ? '#E67E22' : C.textMuted} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.rewardLabel, isUnlocked && styles.rewardLabelUnlocked]}>{tier.label}</Text>
-                      <Text style={styles.rewardDesc}>{tier.description}</Text>
-                      <Text style={styles.rewardThreshold}>{isUnlocked ? '✅ Unlocked!' : `Requires ${tier.threshold} items used in a day`}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <BottomSheetModal visible={rewardsModal} onClose={() => setRewardsModal(false)} title="My Rewards">
+        <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+          <Text style={styles.rewardsIntro}>Use items in the Use It Up Challenge to unlock exclusive rewards!</Text>
+          {challengeTiers.map((tier) => {
+            const isUnlocked = unlockedRewards.includes(tier.reward);
+            return (
+              <View key={tier.reward} style={[styles.rewardRow, isUnlocked && styles.rewardRowUnlocked]}>
+                <View style={[styles.rewardIcon, isUnlocked && styles.rewardIconUnlocked]}>
+                  <Ionicons name={isUnlocked ? getValidIcon(tier.emoji) : 'lock-closed-outline'} size={24} color={isUnlocked ? '#E67E22' : C.textMuted} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.rewardLabel, isUnlocked && styles.rewardLabelUnlocked]}>{tier.label}</Text>
+                  <Text style={styles.rewardDesc}>{tier.description}</Text>
+                  <Text style={styles.rewardThreshold}>{isUnlocked ? '✅ Unlocked!' : `Requires ${tier.threshold} items used in a day`}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      </BottomSheetModal>
 
       {/* Help Modal */}
-      <Modal visible={helpModal} animationType="slide" transparent onRequestClose={() => setHelpModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Help & Support</Text>
-              <TouchableOpacity onPress={() => setHelpModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+      <BottomSheetModal visible={helpModal} onClose={() => setHelpModal(false)} title="Help & Support">
+        <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+          {[
+            { q: '📦 How do I add food items?', a: 'Tap "Add Food" on the Home screen or the "+ Add" button in Inventory.' },
+            { q: '🍳 How are recipes suggested?', a: 'Our AI matches your inventory with popular recipes, prioritising expiring ingredients.' },
+            { q: '🤝 How does donating work?', a: 'Add items to your Donation Hamper, then confirm and book a drop-off location.' },
+            { q: '⚠️ What do expiry alerts mean?', a: 'Items within 5 days of expiry are marked as "Expiring Soon".' },
+            { q: '🔥 What is the Use It Up Challenge?', a: 'Use 3 items to unlock a profile icon, 6 for the Eco Theme, and 9 for the Premium Theme.' },
+          ].map((faq) => (
+            <View key={faq.q} style={styles.faqItem}>
+              <Text style={styles.faqQ}>{faq.q}</Text>
+              <Text style={styles.faqA}>{faq.a}</Text>
             </View>
-            <View style={styles.modalBody}>
-              {[
-                { q: '📦 How do I add food items?', a: 'Tap "Add Food" on the Home screen or the "+ Add" button in Inventory.' },
-                { q: '🍳 How are recipes suggested?', a: 'Our AI matches your inventory with popular recipes, prioritising expiring ingredients.' },
-                { q: '🤝 How does donating work?', a: 'Add items to your Donation Hamper, then confirm and book a drop-off location.' },
-                { q: '⚠️ What do expiry alerts mean?', a: 'Items within 5 days of expiry are marked as "Expiring Soon".' },
-                { q: '🔥 What is the Use It Up Challenge?', a: 'Use 3 items to unlock a profile icon, 6 for the Eco Theme, and 9 for the Premium Theme.' },
-              ].map((faq) => (
-                <View key={faq.q} style={styles.faqItem}>
-                  <Text style={styles.faqQ}>{faq.q}</Text>
-                  <Text style={styles.faqA}>{faq.a}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
+          ))}
+        </ScrollView>
+      </BottomSheetModal>
 
       {/* About Modal */}
-      <Modal visible={aboutModal} animationType="slide" transparent onRequestClose={() => setAboutModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>About SmartPlate</Text>
-              <TouchableOpacity onPress={() => setAboutModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
-                <Ionicons name="leaf" size={48} color={C.primary} />
-                <Text style={[styles.userName, { color: C.primary, marginTop: SPACING.sm, marginBottom: 0 }]}>SmartPlate</Text>
-              </View>
-              <Text style={styles.aboutText}>SmartPlate helps households track food inventory, get smart recipe suggestions, and donate surplus food to those in need.</Text>
-              <Text style={styles.aboutText}>Our mission: reduce food waste in South African homes — one household at a time.</Text>
-              <Text style={[styles.version, { marginTop: SPACING.sm }]}>Version 1.0.0 · University Group Project</Text>
-            </View>
+      <BottomSheetModal visible={aboutModal} onClose={() => setAboutModal(false)} title="About SmartPlate">
+        <View style={styles.modalBody}>
+          <View style={{ alignItems: 'center', marginBottom: SPACING.md }}>
+            <Ionicons name="leaf" size={48} color={C.primary} />
+            <Text style={[styles.userName, { color: C.primary, marginTop: SPACING.sm, marginBottom: 0 }]}>SmartPlate</Text>
           </View>
+          <Text style={styles.aboutText}>SmartPlate helps households track food inventory, get smart recipe suggestions, and donate surplus food to those in need.</Text>
+          <Text style={styles.aboutText}>Our mission: reduce food waste in South African homes — one household at a time.</Text>
+          <Text style={[styles.version, { marginTop: SPACING.sm }]}>Version 1.0.0 · University Group Project</Text>
         </View>
-      </Modal>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -320,12 +273,7 @@ const makeStyles = (C) => StyleSheet.create({
   themeChipLabel: { fontSize: 11, fontWeight: '500', color: C.textMuted },
   themeCheck: { fontSize: 12, marginTop: 2 },
   version: { textAlign: 'center', fontSize: 12, color: C.textMuted, marginTop: SPACING.md },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
-  modalSheet: { backgroundColor: C.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', ...SHADOW.strong },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: C.divider },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
-  modalClose: { fontSize: 18, color: C.textLight },
-  modalBody: { padding: SPACING.lg, gap: SPACING.md },
+  modalBody: { paddingHorizontal: 0, paddingBottom: SPACING.lg, gap: SPACING.md },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: C.textMid, marginBottom: 6 },
   input: { backgroundColor: C.inputBg, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, paddingHorizontal: SPACING.md, paddingVertical: 13, fontSize: 15, color: C.textDark, marginBottom: SPACING.md },
   toggleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: C.divider },

@@ -57,10 +57,7 @@ export function AppProvider({ children }) {
         donationsMade: analyticsData.donationsMade,
       }));
 
-      try {
-        const recipesData = await api.getRecipes();
-        setRecipes(recipesData);
-      } catch (e) { console.warn('Failed to fetch recipes', e); }
+      await fetchRecipes();
 
       try {
         const nudgesData = await api.getNudges();
@@ -77,6 +74,13 @@ export function AppProvider({ children }) {
       setInventory([]);
       setDonationHamper([]);
     }
+  };
+
+  const fetchRecipes = async () => {
+    try {
+      const recipesData = await api.getRecipes();
+      setRecipes(recipesData);
+    } catch (e) { console.warn('Failed to fetch recipes', e); }
   };
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
@@ -319,6 +323,7 @@ export function AppProvider({ children }) {
         adminRemoveUser, adminToggleSuspendUser,
         adminRemoveEntry, adminFlagEntry, adminUnflagEntry,
         adminResolveComplaint,
+        fetchRecipes,
       }}
     >
       {children}

@@ -16,10 +16,11 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
-import { CATEGORIES } from '../data/mockData';
+import { CATEGORIES, CATEGORY_ICONS } from '../data/mockData';
 import { getFoodIcon } from '../data/foodDictionary';
 import AppHeader from '../components/AppHeader';
 import PrimaryButton from '../components/PrimaryButton';
+import BottomSheetModal from '../components/BottomSheetModal';
 import { COLORS, SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 
@@ -268,20 +269,11 @@ export default function AddFoodScreen({ navigation }) {
       </ScrollView>
 
       {/* Category picker modal */}
-      <Modal
+      <BottomSheetModal
         visible={categoryModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setCategoryModalVisible(false)}
+        onClose={() => setCategoryModalVisible(false)}
+        title="Select Category"
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select Category</Text>
-              <TouchableOpacity onPress={() => setCategoryModalVisible(false)}>
-                <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
-            </View>
             <FlatList
               data={CATEGORIES}
               keyExtractor={(item) => item}
@@ -299,9 +291,8 @@ export default function AddFoodScreen({ navigation }) {
                 </TouchableOpacity>
               )}
             />
-          </View>
-        </View>
-      </Modal>
+            />
+      </BottomSheetModal>
     </KeyboardAvoidingView>
   );
 }

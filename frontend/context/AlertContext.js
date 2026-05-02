@@ -162,7 +162,6 @@ export function AlertProvider({ children }) {
           onPress={attemptDismiss}
         >
           <Animated.View
-            {...panResponder.panHandlers}
             style={[
               styles.sheet, 
               { 
@@ -172,11 +171,13 @@ export function AlertProvider({ children }) {
             ]}
           >
             <TouchableOpacity activeOpacity={1}>
-              {/* Handle bar */}
-              <View style={styles.handle} />
-
-              {/* Title */}
-              <Text style={styles.title}>{modalConfig.title}</Text>
+              {/* Draggable Header */}
+              <View {...panResponder.panHandlers} style={styles.dragHeader}>
+                {/* Handle bar */}
+                <View style={styles.handle} />
+                {/* Title */}
+                <Text style={styles.title}>{modalConfig.title}</Text>
+              </View>
 
               {/* Message */}
               {!!modalConfig.message && (
@@ -270,7 +271,13 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: COLORS.border,
     alignSelf: 'center',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
+
+  // Draggable Header Area
+  dragHeader: {
+    paddingVertical: SPACING.sm,
+    backgroundColor: 'transparent',
   },
 
   // Title

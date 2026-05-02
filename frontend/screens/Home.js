@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import StatCard from '../components/StatCard';
 import ActionCard from '../components/ActionCard';
 import InsightCard from '../components/InsightCard';
+import BottomSheetModal from '../components/BottomSheetModal';
 import { getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
@@ -148,16 +149,8 @@ export default function HomeScreen({ navigation }) {
       </ScrollView>
 
       {/* Notifications modal */}
-      <Modal visible={notifVisible} animationType="slide" transparent onRequestClose={() => setNotifVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.notifSheet}>
-            <View style={styles.notifHeader}>
-              <Text style={styles.notifTitle}>Notifications</Text>
-              <TouchableOpacity onPress={() => setNotifVisible(false)}>
-                <Text style={styles.closeBtn}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            <FlatList
+      <BottomSheetModal visible={notifVisible} onClose={() => setNotifVisible(false)} title="Notifications">
+        <FlatList
               data={allNotifications}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
@@ -182,9 +175,7 @@ export default function HomeScreen({ navigation }) {
               )}
               ItemSeparatorComponent={() => <View style={styles.notifSep} />}
             />
-          </View>
-        </View>
-      </Modal>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -254,11 +245,6 @@ const makeStyles = (C) => StyleSheet.create({
   alertMsg: { fontSize: 12, color: C.textMid, marginTop: 2 },
   alertBtn: { backgroundColor: C.warning, borderRadius: RADIUS.sm, paddingHorizontal: 12, paddingVertical: 7 },
   alertBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: C.overlay, justifyContent: 'flex-end' },
-  notifSheet: { backgroundColor: C.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '75%', ...SHADOW.strong },
-  notifHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: C.divider },
-  notifTitle: { fontSize: 18, fontWeight: '700', color: C.textDark },
-  closeBtn: { fontSize: 18, color: C.textLight },
   notifItem: { flexDirection: 'row', padding: SPACING.md, gap: SPACING.md, alignItems: 'flex-start' },
   notifIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center' },
   notifItemTitle: { fontSize: 14, fontWeight: '600', color: C.textDark },

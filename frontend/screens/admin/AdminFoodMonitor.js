@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
 import { useAlert } from '../../context/AlertContext';
+import BottomSheetModal from '../../components/BottomSheetModal';
 import { getValidIcon } from '../../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
@@ -122,14 +123,8 @@ export default function AdminFoodMonitor() {
       </ScrollView>
 
       {/* Flag reason modal */}
-      <Modal visible={flagModal} animationType="slide" transparent onRequestClose={() => setFlagModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Flag Entry</Text>
-              <TouchableOpacity onPress={() => setFlagModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
+      <BottomSheetModal visible={flagModal} onClose={() => setFlagModal(false)} title="Flag Entry">
+        <View style={styles.modalBody}>
               <Text style={styles.modalDesc}>Flagging: <Text style={{ fontWeight: '700' }}>{flagTarget?.name}</Text> by {flagTarget?.userName}</Text>
               <Text style={styles.fieldLabel}>Reason for flagging</Text>
               <TextInput
@@ -145,9 +140,7 @@ export default function AdminFoodMonitor() {
                 <Text style={styles.confirmFlagBtnText}><Ionicons name="warning" size={16} color="#fff" /> Flag This Entry</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -184,12 +177,7 @@ const styles = StyleSheet.create({
   unflagBtnText: { fontSize: 13, fontWeight: '700', color: A.success },
   removeBtn: { flex: 1, paddingVertical: 11, alignItems: 'center', backgroundColor: A.dangerBg },
   removeBtnText: { fontSize: 13, fontWeight: '700', color: A.danger },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet: { backgroundColor: A.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, ...SHADOW.strong },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: A.divider },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: A.textDark },
-  modalClose: { fontSize: 18, color: A.textLight },
-  modalBody: { padding: SPACING.lg },
+  modalBody: { paddingHorizontal: 0, paddingBottom: SPACING.lg },
   modalDesc: { fontSize: 14, color: A.textMid, marginBottom: SPACING.md },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: A.textMid, marginBottom: 6 },
   reasonInput: { backgroundColor: '#F7FAFC', borderRadius: RADIUS.md, borderWidth: 1, borderColor: A.border, paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: 14, color: A.textDark, textAlignVertical: 'top', marginBottom: SPACING.lg },

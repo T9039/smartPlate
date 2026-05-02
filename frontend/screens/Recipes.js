@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RecipeCard from '../components/RecipeCard';
 import EmptyState from '../components/EmptyState';
@@ -8,11 +8,19 @@ import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function RecipesScreen({ navigation }) {
   const C = useColors();
-  const { recipes } = useAppContext();
+  const { recipes, fetchRecipes } = useAppContext();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const [showAll, setShowAll] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   const displayedRecipes = showAll ? recipes : recipes.slice(0, 3);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchRecipes();
+    setRefreshing(false);
+  };
 
   return (
     <View style={[styles.flex, { paddingTop: insets.top }]}>
@@ -26,7 +34,13 @@ export default function RecipesScreen({ navigation }) {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scroll} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} colors={[C.primary]} />
+        }
+      >
         <View style={styles.infoBanner}>
           <Text style={styles.infoEmoji}>✨</Text>
           <Text style={styles.infoText}>Recipes matched to ingredients you already have — use what's expiring first!</Text>
@@ -50,6 +64,19 @@ export default function RecipesScreen({ navigation }) {
             <Text style={styles.viewMoreText}>Show Less</Text>
           </TouchableOpacity>
         )}
+
+        <TouchableOpacity 
+          style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]} 
+          onPress={onRefresh} 
+          activeOpacity={0.8}
+          disabled={refreshing}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.refreshBtnText}>↻ Generate New Recipes</Text>
+          )}
+        </TouchableOpacity>
 
         <View style={styles.matchLegend}>
           <Text style={styles.legendTitle}>Match % Guide</Text>
@@ -94,4 +121,10 @@ const makeStyles = (C) => StyleSheet.create({
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
   legendText: { fontSize: 12, color: C.textLight },
+  refreshBtn: {
+    marginTop: SPACING.md, borderRadius: RADIUS.md, backgroundColor: C.primaryMed,
+    paddingVertical: 13, alignItems: 'center', flexDirection: 'row', justifyContent: 'center',
+    gap: 8, ...SHADOW.soft,
+  },
+  refreshBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 });

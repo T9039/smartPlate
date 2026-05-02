@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
 import { useAlert } from '../../context/AlertContext';
+import BottomSheetModal from '../../components/BottomSheetModal';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -141,14 +142,8 @@ export default function AdminDonations() {
       </ScrollView>
 
       {/* Resolve modal */}
-      <Modal visible={resolveModal} animationType="slide" transparent onRequestClose={() => setResolveModal(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Resolve Complaint</Text>
-              <TouchableOpacity onPress={() => setResolveModal(false)}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
+      <BottomSheetModal visible={resolveModal} onClose={() => setResolveModal(false)} title="Resolve Complaint">
+        <View style={styles.modalBody}>
               <Text style={styles.modalDesc}>Complaint by <Text style={{ fontWeight: '700' }}>{resolveTarget?.userName}</Text> at {resolveTarget?.locationName}</Text>
               <Text style={styles.fieldLabel}>Resolution / Action Taken</Text>
               <TextInput
@@ -164,9 +159,7 @@ export default function AdminDonations() {
                 <Text style={styles.confirmResolveBtnText}>✅ Mark as Resolved</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -215,12 +208,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 12, fontWeight: '700' },
   resolveBtn: { backgroundColor: A.primaryMed, borderRadius: RADIUS.sm, paddingHorizontal: 14, paddingVertical: 8 },
   resolveBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet: { backgroundColor: A.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, ...SHADOW.strong },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SPACING.lg, borderBottomWidth: 1, borderBottomColor: A.divider },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: A.textDark },
-  modalClose: { fontSize: 18, color: A.textLight },
-  modalBody: { padding: SPACING.lg },
+  modalBody: { paddingHorizontal: 0, paddingBottom: SPACING.lg },
   modalDesc: { fontSize: 14, color: A.textMid, marginBottom: SPACING.md },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: A.textMid, marginBottom: 6 },
   reasonInput: { backgroundColor: '#F7FAFC', borderRadius: RADIUS.md, borderWidth: 1, borderColor: A.border, paddingHorizontal: SPACING.md, paddingVertical: 12, fontSize: 14, color: A.textDark, textAlignVertical: 'top', marginBottom: SPACING.lg },
