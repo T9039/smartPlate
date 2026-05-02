@@ -1,13 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-const model = "gemini-2.0-flash";
+const model = "gemini-flash-latest";
 
 export async function getRecipeSuggestions(ingredients: string[]) {
     const prompt = `Based on these ingredients that are expiring soon: ${ingredients.join(", ")}, 
-    recommend 3 recipes to reduce food waste. 
-    Return the result as a JSON array of objects with the following structure:
-    [{ "title": string, "ingredients": string[], "instructions": string[] }]`;
+    recommend 3 recipes to reduce food waste.
+    For each recipe, pick an appropriate Ionicons name for 'icon' (e.g., 'restaurant-outline', 'pizza-outline', 'leaf-outline').
+    For ingredients, label status as 'expiring' (if it's in the list above), 'in-inventory' (if it's a common pantry staple), or 'missing'.`;
 
     const response = await genAI.models.generateContent({
         model,
@@ -19,11 +19,26 @@ export async function getRecipeSuggestions(ingredients: string[]) {
                 items: {
                     type: Type.OBJECT,
                     properties: {
+                        id: { type: Type.STRING },
                         title: { type: Type.STRING },
-                        ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        instructions: { type: Type.ARRAY, items: { type: Type.STRING } }
+                        icon: { type: Type.STRING },
+                        time: { type: Type.STRING },
+                        difficulty: { type: Type.STRING },
+                        matchPercent: { type: Type.NUMBER },
+                        ingredients: { 
+                            type: Type.ARRAY, 
+                            items: { 
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    status: { type: Type.STRING }
+                                },
+                                required: ["name", "status"]
+                            } 
+                        },
+                        steps: { type: Type.ARRAY, items: { type: Type.STRING } }
                     },
-                    required: ["title", "ingredients", "instructions"]
+                    required: ["id", "title", "icon", "time", "difficulty", "matchPercent", "ingredients", "steps"]
                 }
             }
         }
