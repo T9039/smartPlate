@@ -28,7 +28,7 @@ const toInventoryItem = (row: any) => ({
 });
 
 router.get("/", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-  const items = await db.query("SELECT * FROM inventory WHERE user_id = ? ORDER BY expiry_date ASC", [req.user.id]) as any[];
+  const items = await db.query("SELECT * FROM inventory WHERE user_id = ? AND in_hamper = 0 ORDER BY expiry_date ASC", [req.user.id]) as any[];
   res.json(items.map(toInventoryItem));
 });
 
@@ -99,8 +99,18 @@ router.get("/:id/insights", authenticateToken, async (req: AuthenticatedRequest,
     await db.query("UPDATE inventory SET insights = ? WHERE id = ?", [JSON.stringify(insights), item.id]);
     
     res.json(insights);
-  } catch (error) {
-    console.error("Failed to fetch insights:", error);
+  } catch (error: any) {
+    const isQuotaError = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+    if (isQuotaError) {
+      console.warn("AI quota exhausted — returning fallback for insights");
+      return res.status(503).json({ 
+        error: "AI quota exceeded",
+        tips: ["AI insights are temporarily unavailable. Please try again tomorrow when the daily quota resets."],
+        preservation: null,
+        quotaExceeded: true,
+      });
+    }
+    console.warn("Failed to fetch insights:", error?.message);
     res.status(500).json({ error: "Failed to fetch storage tips" });
   }
 });

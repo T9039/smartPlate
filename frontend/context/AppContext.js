@@ -104,7 +104,7 @@ export function AppProvider({ children }) {
         toast('Logged in successfully', 'success');
       }
     } catch (e) {
-      console.error('API Login Error', e);
+      console.warn('Login failed:', e?.message);
       alert('Login Failed', 'Invalid email or password.');
     }
   };
@@ -202,31 +202,37 @@ export function AppProvider({ children }) {
 
   // ─── Donations ─────────────────────────────────────────────────────────────
   const addToDonationHamper = async (item) => {
-    if (donationHamper.find((d) => d.name === item.name)) return;
+    // Prevent duplicates
+    if (donationHamper.find((d) => d.id === item.id)) return;
 
     try {
-      const dbDonation = {
-        name: item.name,
-        quantity: `${item.quantity} ${item.unit || ''}`.trim(),
-        source_type: item.sourceType || 'manual',
-        emoji: item.emoji || 'cube-outline',
-      };
-      const added = await api.addDonation(dbDonation);
-      setDonationHamper((prev) => [...prev, { ...dbDonation, id: added.id.toString(), readyStatus: false }]);
-    } catch (e) {
-      console.error(e);
-    }
+      // Tell the server: mark this inventory item as in-hamper
+      const hamperItem = await api.addDonation(item.id);
 
-    setImpact((prev) => ({ ...prev, donationsMade: prev.donationsMade + 1 }));
-    if (item.id) removeFromInventory(item.id);
+      // Move item from inventory → hamper in local state (no delete needed)
+      setInventory((prev) => prev.filter((i) => i.id !== item.id));
+      setDonationHamper((prev) => [...prev, hamperItem]);
+      setImpact((prev) => ({ ...prev, donationsMade: prev.donationsMade + 1 }));
+    } catch (e) {
+      console.warn('Error adding to donation hamper:', e?.message);
+    }
   };
 
   const removeFromDonationHamper = async (id) => {
+    // id here is the inventory_id (same as hamper item id)
+    const item = donationHamper.find((i) => i.id.toString() === id.toString());
     try {
       await api.deleteDonation(id);
+
+      // Move item back from hamper → inventory in local state (no re-insert needed)
       setDonationHamper((prev) => prev.filter((i) => i.id.toString() !== id.toString()));
+      if (item) {
+        setInventory((prev) => [{ ...item, inHamper: false }, ...prev]);
+        toast('Item returned to inventory', 'info');
+      }
     } catch (e) {
-      console.error('API Error removing from donation hamper', e);
+      console.warn('Error removing from donation hamper:', e?.message);
+      // Still remove from local hamper on failure
       setDonationHamper((prev) => prev.filter((i) => i.id.toString() !== id.toString()));
     }
   };

@@ -38,6 +38,7 @@ sqliteDb.exec(`
         used_recently   BOOLEAN DEFAULT 0,
         expiring_soon   BOOLEAN DEFAULT 0,
         donated         BOOLEAN DEFAULT 0,
+        in_hamper       BOOLEAN DEFAULT 0,
         flagged         BOOLEAN DEFAULT 0,
         flag_reason     TEXT,
         created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -55,17 +56,16 @@ sqliteDb.exec(`
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
-    -- Donation hampers (personal outgoing donations)
-    CREATE TABLE IF NOT EXISTS donation_hampers (
+    -- Hamper items: junction table linking users to inventory items they want to donate
+    -- (donation_hampers kept for backwards compatibility, hamper_items is the new relational approach)
+    CREATE TABLE IF NOT EXISTS hamper_items (
         id              INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id         INTEGER NOT NULL,
-        name            TEXT    NOT NULL,
-        quantity        TEXT,
-        source_type     TEXT    DEFAULT 'manual',
-        ready_status    BOOLEAN DEFAULT 0,
-        emoji           TEXT,
-        created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        inventory_id    INTEGER NOT NULL,
+        added_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, inventory_id),
+        FOREIGN KEY (user_id)      REFERENCES users(id)     ON DELETE CASCADE,
+        FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE
     );
 
     -- Physical donation drop-off locations
@@ -190,8 +190,9 @@ addColumnIfMissing('users', 'status',       "TEXT DEFAULT 'active'");
 addColumnIfMissing('users', 'avatar',       'TEXT');
 
 // inventory
-addColumnIfMissing('inventory', 'flagged',      'BOOLEAN DEFAULT 0');
-addColumnIfMissing('inventory', 'flag_reason',  'TEXT');
+addColumnIfMissing('inventory', 'flagged',    'BOOLEAN DEFAULT 0');
+addColumnIfMissing('inventory', 'flag_reason','TEXT');
+addColumnIfMissing('inventory', 'in_hamper',  'BOOLEAN DEFAULT 0');
 
 // ─── Async-compatible query helpers ───────────────────────────────────────────
 export const query = async (sql: string, params: any[] = []) => {

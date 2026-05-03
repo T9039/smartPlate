@@ -291,7 +291,6 @@ export default function AddFoodScreen({ navigation }) {
                 </TouchableOpacity>
               )}
             />
-            />
       </BottomSheetModal>
     </KeyboardAvoidingView>
   );

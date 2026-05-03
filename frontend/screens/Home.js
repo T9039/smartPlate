@@ -191,7 +191,7 @@ const makeStyles = (C) => StyleSheet.create({
   subGreeting: { fontSize: 13, color: C.textLight, marginTop: 2 },
   bellBtn: {
     position: 'relative', width: 44, height: 44, borderRadius: 22,
-    backgroundColor: C.paleGreen, alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center', justifyContent: 'center',
   },
   bellIcon: { fontSize: 20 },
   notifDot: {
@@ -201,7 +201,12 @@ const makeStyles = (C) => StyleSheet.create({
   scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
   impactCard: {
     backgroundColor: C.surface, borderRadius: RADIUS.xl, padding: SPACING.lg,
-    marginBottom: SPACING.lg, borderTopWidth: 4, borderTopColor: C.primaryMed, ...SHADOW.medium,
+    marginBottom: SPACING.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   impactTitle: {
     fontSize: 13, fontWeight: '700', color: C.textLight,
@@ -210,7 +215,12 @@ const makeStyles = (C) => StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: SPACING.sm },
   challengeCard: {
     backgroundColor: C.surface, borderRadius: RADIUS.xl, padding: SPACING.lg,
-    marginBottom: SPACING.lg, borderTopWidth: 4, borderTopColor: '#E67E22', ...SHADOW.medium,
+    marginBottom: SPACING.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   challengeHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   challengeTitle: { fontSize: 15, fontWeight: '800', color: C.textDark },

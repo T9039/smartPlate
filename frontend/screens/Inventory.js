@@ -63,10 +63,15 @@ export default function InventoryScreen({ navigation }) {
       setLoadingInsights(true);
       try {
         const data = await api.getInventoryInsights(item.id);
+        // If quota exceeded, show the fallback tips without an error alert
         setInsights(data);
       } catch (err) {
-        console.error(err);
-        alert('Error', 'Failed to load storage tips');
+        console.warn('Insights fetch failed:', err?.message);
+        // Only show alert for unexpected errors, not quota issues
+        if (!err?.message?.includes('quota') && !err?.message?.includes('503')) {
+          alert('Error', 'Failed to load storage tips');
+        }
+        setInsights({ quotaExceeded: true, tips: ['AI insights are temporarily unavailable. The daily quota has been reached — try again tomorrow!'] });
       } finally {
         setLoadingInsights(false);
       }

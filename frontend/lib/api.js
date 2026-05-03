@@ -80,25 +80,25 @@ export const api = {
     return res.ok;
   },
 
-  // Donations
+  // Donations — hamper is a relationship to inventory items
   getDonations: async () => {
     const res = await fetch(`${API_URL}/donations`, { headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to get donations');
     return res.json();
   },
 
-  addDonation: async (donation) => {
+  addDonation: async (inventory_id) => {
     const res = await fetch(`${API_URL}/donations`, {
       method: 'POST',
       headers: defaultHeaders(),
-      body: JSON.stringify(donation),
+      body: JSON.stringify({ inventory_id }),
     });
     if (!res.ok) throw new Error('Failed to add donation');
     return res.json();
   },
 
-  deleteDonation: async (id) => {
-    const res = await fetch(`${API_URL}/donations/${id}`, {
+  deleteDonation: async (inventory_id) => {
+    const res = await fetch(`${API_URL}/donations/${inventory_id}`, {
       method: 'DELETE',
       headers: defaultHeaders(),
     });

@@ -36,9 +36,10 @@ const Tab = createBottomTabNavigator();
 
 // Custom Tab Icon component
 function TabIcon({ icon, label, focused, activeColor, inactiveColor }) {
+  const iconName = focused ? icon.replace('-outline', '') : icon;
   return (
     <View style={styles.tabIconWrap}>
-      <Ionicons name={icon} size={22} color={focused ? activeColor : inactiveColor} style={{ opacity: focused ? 1 : 0.55 }} />
+      <Ionicons name={iconName} size={22} color={focused ? activeColor : inactiveColor} style={{ opacity: focused ? 1 : 0.55 }} />
       <Text style={[styles.tabLabel, { color: focused ? activeColor : inactiveColor }]}>
         {label}
       </Text>

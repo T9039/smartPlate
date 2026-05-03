@@ -128,7 +128,7 @@ export default function DonationsScreen({ navigation }) {
                 <View style={styles.hamperItemIcon}><Ionicons name={getValidIcon(item.emoji)} size={24} color={C.primary} /></View>
                 <View>
                   <Text style={styles.hamperItemName}>{item.name}</Text>
-                  <Text style={styles.hamperItemMeta}>{item.quantity} · {item.sourceType === 'inventory' ? 'From inventory' : 'Manually added'}</Text>
+                  <Text style={styles.hamperItemMeta}>{item.quantity} {item.unit} · {item.category || 'From inventory'} · Expires {item.expiryDate || 'N/A'}</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.removeBtn} onPress={() => handleRemove(item)} activeOpacity={0.7}>
