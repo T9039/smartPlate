@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../styles/theme';
 
 export default function AppHeader({ title, subtitle, onBack, rightComponent }) {
@@ -10,8 +11,13 @@ export default function AppHeader({ title, subtitle, onBack, rightComponent }) {
     <View style={[styles.container, { paddingTop: insets.top + SPACING.sm }]}>
       <View style={styles.row}>
         {onBack ? (
-          <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
-            <Text style={styles.backArrow}>←</Text>
+          <TouchableOpacity 
+            style={styles.backBtn} 
+            onPress={onBack} 
+            activeOpacity={0.7}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          >
+            <Ionicons name="chevron-back" size={28} color={COLORS.textDark} />
           </TouchableOpacity>
         ) : (
           <View style={styles.backPlaceholder} />
@@ -46,16 +52,8 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.paleGreen,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 18,
-    color: COLORS.primaryMed,
-    fontWeight: '700',
-    lineHeight: 20,
   },
   backPlaceholder: {
     width: 36,
