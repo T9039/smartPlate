@@ -62,14 +62,41 @@ router.get("/inventory", async (req: Request, res: Response) => {
     try {
         const inventory = await db.query(`
             SELECT 
-                i.id, u.username as owner, i.name as itemName, i.added_date as dateAdded, 
+                i.id, 
+                u.username as userName, 
+                i.name, 
+                i.category,
+                i.added_date as addedDate, 
+                i.emoji,
                 CASE WHEN i.donated = 1 THEN 'donated' WHEN i.in_hamper = 1 THEN 'hamper' ELSE 'active' END as status,
-                i.flagged, i.flag_reason as flagReason
+                i.flagged, 
+                i.flag_reason as flagReason
             FROM inventory i
             JOIN users u ON i.user_id = u.id
             ORDER BY i.created_at DESC
         `);
         res.json(inventory);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin Flag Inventory
+router.put("/inventory/:id/flag", async (req: Request, res: Response) => {
+    try {
+        const { flagged, flagReason } = req.body;
+        await db.query(`UPDATE inventory SET flagged = ?, flag_reason = ? WHERE id = ?`, [flagged ? 1 : 0, flagReason || null, req.params.id]);
+        res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Admin Delete Inventory
+router.delete("/inventory/:id", async (req: Request, res: Response) => {
+    try {
+        await db.query(`DELETE FROM inventory WHERE id = ?`, [req.params.id]);
+        res.json({ success: true });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

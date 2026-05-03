@@ -153,7 +153,11 @@ export function AppProvider({ children }) {
       }
     } catch (e) {
       console.warn('Login failed:', e?.message);
-      alert('Login Failed', 'Invalid email or password.');
+      if (e?.message === 'Account suspended') {
+        alert('Account Suspended', 'Your account has been suspended by an administrator.');
+      } else {
+        alert('Login Failed', 'Invalid email or password.');
+      }
     }
   };
 
@@ -344,20 +348,29 @@ export function AppProvider({ children }) {
   };
 
   // ─── Admin: inventory oversight ────────────────────────────────────────────
-  const adminRemoveEntry = (entryId) => {
-    setAllInventoryEntries((prev) => prev.filter((e) => e.id !== entryId));
+  const adminRemoveEntry = async (entryId) => {
+    try {
+      await api.adminDeleteInventory(entryId);
+      setAllInventoryEntries((prev) => prev.filter((e) => e.id !== entryId));
+    } catch (e) { console.warn('Failed to delete entry', e); }
   };
 
-  const adminFlagEntry = (entryId, reason) => {
-    setAllInventoryEntries((prev) =>
-      prev.map((e) => (e.id === entryId ? { ...e, flagged: true, flagReason: reason } : e))
-    );
+  const adminFlagEntry = async (entryId, reason) => {
+    try {
+      await api.adminFlagInventory(entryId, true, reason);
+      setAllInventoryEntries((prev) =>
+        prev.map((e) => (e.id === entryId ? { ...e, flagged: true, flagReason: reason } : e))
+      );
+    } catch (e) { console.warn('Failed to flag entry', e); }
   };
 
-  const adminUnflagEntry = (entryId) => {
-    setAllInventoryEntries((prev) =>
-      prev.map((e) => (e.id === entryId ? { ...e, flagged: false, flagReason: null } : e))
-    );
+  const adminUnflagEntry = async (entryId) => {
+    try {
+      await api.adminFlagInventory(entryId, false, null);
+      setAllInventoryEntries((prev) =>
+        prev.map((e) => (e.id === entryId ? { ...e, flagged: false, flagReason: null } : e))
+      );
+    } catch (e) { console.warn('Failed to unflag entry', e); }
   };
 
   // ─── Admin: donation complaints ────────────────────────────────────────────

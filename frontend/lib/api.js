@@ -24,7 +24,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    if (!res.ok) throw new Error('Login failed');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Login failed');
+    }
     return res.json();
   },
 
@@ -189,6 +192,22 @@ export const api = {
   adminDeleteUser: async (userId) => {
     const res = await fetch(`${API_URL}/admin/users/${userId}`, { method: 'DELETE', headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to delete user');
+    return res.json();
+  },
+
+  adminDeleteInventory: async (inventoryId) => {
+    const res = await fetch(`${API_URL}/admin/inventory/${inventoryId}`, { method: 'DELETE', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to delete admin inventory');
+    return res.json();
+  },
+
+  adminFlagInventory: async (inventoryId, flagged, flagReason) => {
+    const res = await fetch(`${API_URL}/admin/inventory/${inventoryId}/flag`, { 
+      method: 'PUT', 
+      headers: defaultHeaders(),
+      body: JSON.stringify({ flagged, flagReason })
+    });
+    if (!res.ok) throw new Error('Failed to flag inventory');
     return res.json();
   },
 };
