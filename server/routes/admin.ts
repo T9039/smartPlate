@@ -78,9 +78,9 @@ router.get("/inventory", async (req: Request, res: Response) => {
 // Admin stats
 router.get("/stats", async (req: Request, res: Response) => {
     try {
-        const totalUsers = await db.queryOne(`SELECT COUNT(*) as count FROM users WHERE role != 'admin'`);
-        const totalItems = await db.queryOne(`SELECT COUNT(*) as count FROM inventory`);
-        const totalDonations = await db.queryOne(`SELECT COUNT(*) as count FROM hamper_items`);
+        const totalUsers = await db.queryOne(`SELECT COUNT(*) as count FROM users WHERE role != 'admin'`) as { count: number };
+        const totalItems = await db.queryOne(`SELECT COUNT(*) as count FROM inventory`) as { count: number };
+        const totalDonations = await db.queryOne(`SELECT COUNT(*) as count FROM hamper_items`) as { count: number };
         res.json({
             totalUsers: totalUsers.count,
             totalItemsTracked: totalItems.count,
