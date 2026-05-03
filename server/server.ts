@@ -18,6 +18,12 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 app.use(cors());
 app.use(express.json());
 
+// Request logger so you can see traffic in Render logs
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 // Mount Routes
 app.use("/api/auth", authRouter);
 app.use("/api/inventory", inventoryRouter);
