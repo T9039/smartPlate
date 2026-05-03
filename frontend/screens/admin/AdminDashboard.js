@@ -27,16 +27,16 @@ function StatBox({ label, value, icon, color }) {
 }
 
 export default function AdminDashboard({ navigation }) {
-  const { allUsers, allInventoryEntries, donationComplaints, logout } = useAppContext();
+  const { allUsers, allInventoryEntries, donationComplaints, adminStats, logout } = useAppContext();
   const { alert } = useAlert();
   const insets = useSafeAreaInsets();
 
   const activeUsers = allUsers.filter((u) => u.status === 'active').length;
   const flaggedEntries = allInventoryEntries.filter((e) => e.flagged).length;
   const openComplaints = donationComplaints.filter((c) => c.status === 'open').length;
-  // Placeholder stats until admin analytics API route is implemented
-  const totalFoodSaved = 0;
-  const totalDonations = 0;
+  
+  const totalFoodSaved = adminStats?.totalItemsTracked || 0;
+  const totalDonations = adminStats?.totalDonations || 0;
 
   const handleLogout = () => {
     alert('Log Out', 'Are you sure you want to log out?', [

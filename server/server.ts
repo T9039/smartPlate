@@ -11,6 +11,7 @@ import notificationsRouter from "./routes/notifications.js";
 import aiRouter from "./routes/ai.js";
 import analyticsRouter from "./routes/analytics.js";
 import recipesRouter from "./routes/recipes.js";
+import adminRouter from "./routes/admin.js";
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -33,6 +34,7 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/recipes", recipesRouter);
+app.use("/api/admin", adminRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`smartPlate Server running on http://localhost:${PORT}`);

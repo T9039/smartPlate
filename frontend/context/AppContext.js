@@ -30,6 +30,7 @@ export function AppProvider({ children }) {
   const [allUsers, setAllUsers] = useState([]);
   const [allInventoryEntries, setAllInventoryEntries] = useState([]);
   const [donationComplaints, setDonationComplaints] = useState([]);
+  const [adminStats, setAdminStats] = useState({ totalUsers: 0, totalItemsTracked: 0, totalDonations: 0 });
 
   // Community donations (locations are static config, drop-offs come from DB)
   const [communityDropOffs, setCommunityDropOffs] = useState({});
@@ -38,10 +39,29 @@ export function AppProvider({ children }) {
 
   // Initial Data Fetch
   useEffect(() => {
-    if (isAuthenticated) {
-      loadInitialData();
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        loadAdminData();
+      } else {
+        loadInitialData();
+      }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
+
+  const loadAdminData = async () => {
+    try {
+      const users = await api.getAdminUsers();
+      setAllUsers(users);
+
+      const inv = await api.getAdminInventory();
+      setAllInventoryEntries(inv);
+      
+      const stats = await api.getAdminStats();
+      setAdminStats(stats);
+    } catch (e) {
+      console.warn('Failed to load admin data:', e);
+    }
+  };
 
   const loadInitialData = async () => {
     try {
@@ -305,16 +325,22 @@ export function AppProvider({ children }) {
   };
 
   // ─── Admin: user management ────────────────────────────────────────────────
-  const adminRemoveUser = (userId) => {
-    setAllUsers((prev) => prev.filter((u) => u.id !== userId));
+  const adminRemoveUser = async (userId) => {
+    try {
+      await api.adminDeleteUser(userId);
+      setAllUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (e) { console.warn('Failed to delete user', e); }
   };
 
-  const adminToggleSuspendUser = (userId) => {
-    setAllUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId ? { ...u, status: u.status === 'suspended' ? 'active' : 'suspended' } : u
-      )
-    );
+  const adminToggleSuspendUser = async (userId) => {
+    try {
+      await api.adminToggleSuspend(userId);
+      setAllUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId ? { ...u, status: u.status === 'suspended' ? 'active' : 'suspended' } : u
+        )
+      );
+    } catch (e) { console.warn('Failed to toggle suspend', e); }
   };
 
   // ─── Admin: inventory oversight ────────────────────────────────────────────
@@ -348,7 +374,7 @@ export function AppProvider({ children }) {
         recipes, savedRecipes, nudges, notifications,
         challengeItemsUsedToday, unlockedRewards, activeTheme, challengeTiers,
         communityDropOffs, incomingRequests, donationLocations,
-        allUsers, allInventoryEntries, donationComplaints,
+        allUsers, allInventoryEntries, donationComplaints, adminStats,
         login, register, logout,
         addToInventory, removeFromInventory, markItemUsed,
         addToDonationHamper, removeFromDonationHamper,

@@ -130,7 +130,7 @@ export const api = {
     if (!res.ok) throw new Error('Failed to get recipes');
     return res.json();
   },
-  
+
   getSavedRecipes: async () => {
     const res = await fetch(`${API_URL}/recipes/saved`, { headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to get saved recipes');
@@ -144,7 +144,7 @@ export const api = {
   },
 
   unsaveRecipe: async (id) => {
-    const res = await fetch(`${API_URL}/recipes/${id}/save`, { method: 'DELETE', headers: defaultHeaders() });
+    const res = await fetch(`${API_URL}/recipes/${id}/unsave`, { method: 'DELETE', headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to unsave recipe');
     return res.json();
   },
@@ -158,6 +158,37 @@ export const api = {
   getNotifications: async () => {
     const res = await fetch(`${API_URL}/notifications`, { headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to get notifications');
+    return res.json();
+  },
+
+  // Admin
+  getAdminUsers: async () => {
+    const res = await fetch(`${API_URL}/admin/users`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get admin users');
+    return res.json();
+  },
+
+  getAdminInventory: async () => {
+    const res = await fetch(`${API_URL}/admin/inventory`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get admin inventory');
+    return res.json();
+  },
+
+  getAdminStats: async () => {
+    const res = await fetch(`${API_URL}/admin/stats`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get admin stats');
+    return res.json();
+  },
+
+  adminToggleSuspend: async (userId) => {
+    const res = await fetch(`${API_URL}/admin/users/${userId}/suspend`, { method: 'PUT', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to suspend user');
+    return res.json();
+  },
+
+  adminDeleteUser: async (userId) => {
+    const res = await fetch(`${API_URL}/admin/users/${userId}`, { method: 'DELETE', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to delete user');
     return res.json();
   },
 };
