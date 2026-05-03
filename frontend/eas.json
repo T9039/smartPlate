@@ -12,13 +12,13 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://your-render-app-url.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://smartplate-5alk.onrender.com/api"
       }
     },
     "production": {
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://your-render-app-url.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://smartplate-5alk.onrender.com/api"
       }
     }
   },
