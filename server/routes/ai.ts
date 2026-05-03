@@ -18,11 +18,75 @@ router.get("/recipes", authenticateToken, async (req: AuthenticatedRequest, res:
       return res.json([]);
   }
   
+  const expiringNames = expiringItems.map((i: any) => i.name.toLowerCase());
+  
   try {
-      const recipes = await getRecipeSuggestions(expiringItems.map((i: any) => i.name));
-      res.json(recipes);
+      // 1. Try to fetch from cache globally
+      const allRecipes = await db.query(`SELECT * FROM recipes ORDER BY id DESC LIMIT 200`) as any[];
+      let matchedRecipes: any[] = [];
+      
+      for (const row of allRecipes) {
+          try {
+              const ingredients = JSON.parse(row.ingredients);
+              let matchCount = 0;
+              for (const exp of expiringNames) {
+                  if (ingredients.some((ing: any) => ing.name.toLowerCase().includes(exp))) {
+                      matchCount++;
+                  }
+              }
+              const matchPercent = expiringNames.length ? (matchCount / expiringNames.length) : 0;
+              
+              if (matchPercent >= 0.5) {
+                  matchedRecipes.push({
+                      id: row.id,
+                      title: row.title,
+                      icon: row.emoji,
+                      time: row.time,
+                      difficulty: row.difficulty,
+                      matchPercent: Math.round(matchPercent * 100),
+                      ingredients: ingredients,
+                      steps: JSON.parse(row.steps)
+                  });
+              }
+          } catch (err) {
+              // Ignore malformed JSON in DB
+          }
+      }
+      
+      // If we found enough matched recipes, return them!
+      if (matchedRecipes.length >= 3) {
+          return res.json(matchedRecipes.slice(0, 3));
+      }
+
+      // 2. Otherwise, fall back to AI
+      const aiRecipes = await getRecipeSuggestions(expiringItems.map((i: any) => i.name));
+      
+      // 3. Save newly generated recipes to cache
+      const finalRecipes = [];
+      for (const recipe of aiRecipes) {
+          const insertRes = await db.query(`
+              INSERT INTO recipes (user_id, title, time, difficulty, emoji, ingredients, steps)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
+          `, [
+              req.user.id,
+              recipe.title,
+              recipe.time,
+              recipe.difficulty,
+              recipe.icon,
+              JSON.stringify(recipe.ingredients),
+              JSON.stringify(recipe.steps)
+          ]) as any;
+          
+          finalRecipes.push({
+              ...recipe,
+              id: insertRes.insertId // Replace the string ID with real DB ID
+          });
+      }
+      
+      res.json(finalRecipes);
   } catch (e) {
-      res.status(500).json({ error: "AI failed to generate recipes" });
+      console.error("AI Recipe error", e);
+      res.status(500).json({ error: "Failed to generate recipes" });
   }
 });
 

@@ -10,9 +10,10 @@ import wasteLogsRouter from "./routes/wasteLogs.js";
 import notificationsRouter from "./routes/notifications.js";
 import aiRouter from "./routes/ai.js";
 import analyticsRouter from "./routes/analytics.js";
+import recipesRouter from "./routes/recipes.js";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +26,7 @@ app.use("/api/waste-logs", wasteLogsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/recipes", recipesRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`smartPlate Server running on http://localhost:${PORT}`);

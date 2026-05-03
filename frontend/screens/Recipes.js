@@ -8,17 +8,22 @@ import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function RecipesScreen({ navigation }) {
   const C = useColors();
-  const { recipes, fetchRecipes } = useAppContext();
+  const { recipes, savedRecipes, fetchRecipes, fetchSavedRecipes } = useAppContext();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const [showAll, setShowAll] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('suggestions'); // 'suggestions' | 'saved'
 
   const displayedRecipes = showAll ? recipes : recipes.slice(0, 3);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchRecipes();
+    if (activeTab === 'suggestions') {
+        await fetchRecipes();
+    } else {
+        await fetchSavedRecipes();
+    }
     setRefreshing(false);
   };
 
@@ -34,6 +39,21 @@ export default function RecipesScreen({ navigation }) {
         </View>
       </View>
 
+      <View style={styles.tabContainer}>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'suggestions' && styles.activeTab]} 
+          onPress={() => setActiveTab('suggestions')}
+        >
+          <Text style={[styles.tabText, activeTab === 'suggestions' && styles.activeTabText]}>Suggestions</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'saved' && styles.activeTab]} 
+          onPress={() => setActiveTab('saved')}
+        >
+          <Text style={[styles.tabText, activeTab === 'saved' && styles.activeTabText]}>Saved ({savedRecipes.length})</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView 
         contentContainerStyle={styles.scroll} 
         showsVerticalScrollIndicator={false}
@@ -41,49 +61,63 @@ export default function RecipesScreen({ navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} colors={[C.primary]} />
         }
       >
-        <View style={styles.infoBanner}>
-          <Text style={styles.infoEmoji}>✨</Text>
-          <Text style={styles.infoText}>Recipes matched to ingredients you already have — use what's expiring first!</Text>
-        </View>
+        {activeTab === 'suggestions' ? (
+          <>
+            <View style={styles.infoBanner}>
+              <Text style={styles.infoEmoji}>✨</Text>
+              <Text style={styles.infoText}>Recipes matched to ingredients you already have — use what's expiring first!</Text>
+            </View>
 
-        {displayedRecipes.length === 0 ? (
-          <EmptyState icon="restaurant-outline" title="No recipes yet" message="Add some food items to your inventory and we'll suggest recipes!" />
+            {displayedRecipes.length === 0 ? (
+              <EmptyState icon="restaurant-outline" title="No recipes yet" message="Add some food items to your inventory and we'll suggest recipes!" />
+            ) : (
+              displayedRecipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} onPress={() => navigation.navigate('RecipeDetails', { recipe })} />
+              ))
+            )}
+
+            {!showAll && recipes.length > 3 && (
+              <TouchableOpacity style={styles.viewMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.8}>
+                <Text style={styles.viewMoreText}>View More Recipes ({recipes.length - 3} more)</Text>
+              </TouchableOpacity>
+            )}
+            {showAll && (
+              <TouchableOpacity style={styles.viewMoreBtn} onPress={() => setShowAll(false)} activeOpacity={0.8}>
+                <Text style={styles.viewMoreText}>Show Less</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity 
+              style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]} 
+              onPress={onRefresh} 
+              activeOpacity={0.8}
+              disabled={refreshing}
+            >
+              {refreshing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.refreshBtnText}>↻ Generate New Recipes</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.matchLegend}>
+              <Text style={styles.legendTitle}>Match % Guide</Text>
+              <View style={styles.legendRow}><View style={[styles.legendDot, { backgroundColor: C.primaryMed }]} /><Text style={styles.legendText}>85%+ Great match</Text></View>
+              <View style={styles.legendRow}><View style={[styles.legendDot, { backgroundColor: C.warning }]} /><Text style={styles.legendText}>70–84% Good match</Text></View>
+              <View style={styles.legendRow}><View style={[styles.legendDot, { backgroundColor: C.textMuted }]} /><Text style={styles.legendText}>Below 70% Partial match</Text></View>
+            </View>
+          </>
         ) : (
-          displayedRecipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} onPress={() => navigation.navigate('RecipeDetails', { recipe })} />
-          ))
+          <>
+            {savedRecipes.length === 0 ? (
+              <EmptyState icon="bookmark-outline" title="No saved recipes" message="Your saved recipes will appear here." />
+            ) : (
+              savedRecipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} onPress={() => navigation.navigate('RecipeDetails', { recipe })} />
+              ))
+            )}
+          </>
         )}
-
-        {!showAll && recipes.length > 3 && (
-          <TouchableOpacity style={styles.viewMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.8}>
-            <Text style={styles.viewMoreText}>View More Recipes ({recipes.length - 3} more)</Text>
-          </TouchableOpacity>
-        )}
-        {showAll && (
-          <TouchableOpacity style={styles.viewMoreBtn} onPress={() => setShowAll(false)} activeOpacity={0.8}>
-            <Text style={styles.viewMoreText}>Show Less</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity 
-          style={[styles.refreshBtn, refreshing && { opacity: 0.7 }]} 
-          onPress={onRefresh} 
-          activeOpacity={0.8}
-          disabled={refreshing}
-        >
-          {refreshing ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.refreshBtnText}>↻ Generate New Recipes</Text>
-          )}
-        </TouchableOpacity>
-
-        <View style={styles.matchLegend}>
-          <Text style={styles.legendTitle}>Match % Guide</Text>
-          <View style={styles.legendRow}><View style={[styles.legendDot, { backgroundColor: C.primaryMed }]} /><Text style={styles.legendText}>85%+ Great match</Text></View>
-          <View style={styles.legendRow}><View style={[styles.legendDot, { backgroundColor: C.warning }]} /><Text style={styles.legendText}>70–84% Good match</Text></View>
-          <View style={styles.legendRow}><View style={[styles.legendDot, { backgroundColor: C.textMuted }]} /><Text style={styles.legendText}>Below 70% Partial match</Text></View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -100,6 +134,16 @@ const makeStyles = (C) => StyleSheet.create({
   subtitle: { fontSize: 13, color: C.textLight, marginTop: 2 },
   aiChip: { backgroundColor: C.paleGreen, borderRadius: RADIUS.pill, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: C.sage },
   aiChipText: { fontSize: 12, fontWeight: '600', color: C.primaryMed },
+  tabContainer: {
+    flexDirection: 'row', paddingHorizontal: SPACING.lg, borderBottomWidth: 1, borderBottomColor: C.divider,
+    backgroundColor: C.background
+  },
+  tab: {
+    flex: 1, paddingVertical: SPACING.md, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent'
+  },
+  activeTab: { borderBottomColor: C.primaryMed },
+  tabText: { fontSize: 15, fontWeight: '600', color: C.textMuted },
+  activeTabText: { color: C.primaryMed },
   scroll: { padding: SPACING.lg, paddingBottom: SPACING.xxl },
   infoBanner: {
     backgroundColor: C.paleGreen, borderRadius: RADIUS.lg, padding: SPACING.md,

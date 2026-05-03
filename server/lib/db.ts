@@ -172,6 +172,17 @@ sqliteDb.exec(`
         created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    -- Saved Recipes
+    CREATE TABLE IF NOT EXISTS saved_recipes (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id         INTEGER NOT NULL,
+        recipe_id       INTEGER NOT NULL,
+        saved_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, recipe_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+    );
 `);
 
 // ─── Migrate existing tables: add new columns if they don't exist yet ──────────

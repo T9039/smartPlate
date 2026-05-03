@@ -1,6 +1,6 @@
 // Replace '10.0.2.2' with your machine's local IP address (e.g., '192.168.1.100')
 // if you are using Expo Go on a physical device on the same network.
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://100.83.129.44:3000/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://100.125.249.86:3000/api';
 let authToken = null;
 export const setAuthToken = (token) => {
   authToken = token;
@@ -27,7 +27,7 @@ export const api = {
     if (!res.ok) throw new Error('Login failed');
     return res.json();
   },
-  
+
   register: async (username, email, password) => {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
@@ -44,13 +44,13 @@ export const api = {
     if (!res.ok) throw new Error('Failed to get inventory');
     return res.json();
   },
-  
+
   getInventoryInsights: async (id) => {
     const res = await fetch(`${API_URL}/inventory/${id}/insights`, { headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to get insights');
     return res.json();
   },
-  
+
   addInventoryItem: async (item) => {
     const res = await fetch(`${API_URL}/inventory`, {
       method: 'POST',
@@ -131,6 +131,24 @@ export const api = {
     return res.json();
   },
   
+  getSavedRecipes: async () => {
+    const res = await fetch(`${API_URL}/recipes/saved`, { headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to get saved recipes');
+    return res.json();
+  },
+
+  saveRecipe: async (id) => {
+    const res = await fetch(`${API_URL}/recipes/${id}/save`, { method: 'POST', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to save recipe');
+    return res.json();
+  },
+
+  unsaveRecipe: async (id) => {
+    const res = await fetch(`${API_URL}/recipes/${id}/save`, { method: 'DELETE', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to unsave recipe');
+    return res.json();
+  },
+
   getNudges: async () => {
     const res = await fetch(`${API_URL}/ai/nudges`, { headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to get nudges');

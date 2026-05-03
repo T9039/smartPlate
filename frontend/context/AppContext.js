@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
 
   // AI & Notifications
   const [recipes, setRecipes] = useState([]);
+  const [savedRecipes, setSavedRecipes] = useState([]);
   const [nudges, setNudges] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
@@ -58,6 +59,7 @@ export function AppProvider({ children }) {
       }));
 
       await fetchRecipes();
+      await fetchSavedRecipes();
 
       try {
         const nudgesData = await api.getNudges();
@@ -81,6 +83,32 @@ export function AppProvider({ children }) {
       const recipesData = await api.getRecipes();
       setRecipes(recipesData);
     } catch (e) { console.warn('Failed to fetch recipes', e); }
+  };
+
+  const fetchSavedRecipes = async () => {
+    try {
+      const savedData = await api.getSavedRecipes();
+      setSavedRecipes(savedData);
+    } catch (e) { console.warn('Failed to fetch saved recipes', e); }
+  };
+
+  const saveRecipe = async (id, recipeData) => {
+    try {
+      await api.saveRecipe(id);
+      setSavedRecipes((prev) => {
+        if (prev.find(r => r.id === id)) return prev;
+        return [recipeData, ...prev];
+      });
+      toast('Recipe saved!', 'success');
+    } catch (e) { console.warn('Failed to save recipe', e); }
+  };
+
+  const unsaveRecipe = async (id) => {
+    try {
+      await api.unsaveRecipe(id);
+      setSavedRecipes((prev) => prev.filter(r => r.id !== id));
+      toast('Recipe removed from saved', 'info');
+    } catch (e) { console.warn('Failed to unsave recipe', e); }
   };
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
@@ -137,6 +165,7 @@ export function AppProvider({ children }) {
     setDonationHamper([]);
     setNotifications([]);
     setRecipes([]);
+    setSavedRecipes([]);
     setNudges([]);
     setUnlockedRewards([]);
     setChallengeItemsUsedToday(0);
@@ -316,7 +345,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider
       value={{
         isAuthenticated, user, inventory, donationHamper, impact,
-        recipes, nudges, notifications,
+        recipes, savedRecipes, nudges, notifications,
         challengeItemsUsedToday, unlockedRewards, activeTheme, challengeTiers,
         communityDropOffs, incomingRequests, donationLocations,
         allUsers, allInventoryEntries, donationComplaints,
@@ -329,7 +358,7 @@ export function AppProvider({ children }) {
         adminRemoveUser, adminToggleSuspendUser,
         adminRemoveEntry, adminFlagEntry, adminUnflagEntry,
         adminResolveComplaint,
-        fetchRecipes,
+        fetchRecipes, fetchSavedRecipes, saveRecipe, unsaveRecipe,
       }}
     >
       {children}

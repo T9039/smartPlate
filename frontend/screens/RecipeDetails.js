@@ -37,7 +37,7 @@ const STATUS_CONFIG = {
 
 export default function RecipeDetailsScreen({ navigation, route }) {
   const { recipe } = route.params;
-  const { markItemUsed } = useAppContext();
+  const { markItemUsed, savedRecipes, saveRecipe, unsaveRecipe } = useAppContext();
   const { alert } = useAlert();
 
   const matchColor =
@@ -46,6 +46,16 @@ export default function RecipeDetailsScreen({ navigation, route }) {
       : recipe.matchPercent >= 70
       ? COLORS.warning
       : COLORS.textLight;
+
+  const isSaved = savedRecipes.some(r => r.id === recipe.id);
+
+  const toggleSave = async () => {
+    if (isSaved) {
+      await unsaveRecipe(recipe.id);
+    } else {
+      await saveRecipe(recipe.id, recipe);
+    }
+  };
 
   const handleCookedIt = () => {
     alert(
@@ -65,6 +75,11 @@ export default function RecipeDetailsScreen({ navigation, route }) {
       <AppHeader
         title="Recipe Details"
         onBack={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity onPress={toggleSave} style={styles.saveBtn}>
+            <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={24} color={COLORS.primaryMed} />
+          </TouchableOpacity>
+        }
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -164,6 +179,9 @@ const styles = StyleSheet.create({
   titleSection: {
     padding: SPACING.lg,
     paddingBottom: SPACING.sm,
+  },
+  saveBtn: {
+    padding: 5,
   },
   recipeTitle: {
     fontSize: 24,
