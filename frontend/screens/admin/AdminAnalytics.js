@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppContext } from '../../context/AppContext';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -15,12 +16,12 @@ const A = {
   border: '#E2E8F0', divider: '#EDF2F7',
 };
 
-// Placeholder until admin analytics API route is implemented
-const data = {
+// Fallback empty data
+const emptyData = {
   totalFoodSaved: 0, totalFoodWasted: 0, totalDonations: 0,
   totalUsers: 0, activeUsers: 0, totalItemsSaved: 0, moneySavedTotal: 0,
   topWastedCategory: '—', topDonatedItem: '—',
-  weeklyTrend: [],
+  weeklyTrend: [{ week: '—', saved: 0, wasted: 0, donations: 0 }],
   categoryBreakdown: [],
   donationsByLocation: [],
 };
@@ -76,11 +77,16 @@ function WeekBar({ week, saved, wasted, donations, maxSaved }) {
 }
 
 export default function AdminAnalytics() {
+  const { adminStats } = useAppContext();
   const insets = useSafeAreaInsets();
-  const maxCategory = Math.max(...data.categoryBreakdown.map((c) => c.saved + c.wasted));
-  const maxSaved = Math.max(...data.weeklyTrend.map((w) => w.saved));
-  const wastePercent = Math.round((data.totalFoodWasted / (data.totalFoodSaved + data.totalFoodWasted)) * 100);
-  const savePercent = 100 - wastePercent;
+  
+  const data = adminStats || emptyData;
+  const maxCategory = Math.max(...data.categoryBreakdown.map((c) => c.saved + c.wasted), 1);
+  const maxSaved = Math.max(...data.weeklyTrend.map((w) => w.saved), 1);
+  const wastePercent = (data.totalFoodSaved + data.totalFoodWasted) > 0 
+    ? Math.round((data.totalFoodWasted / (data.totalFoodSaved + data.totalFoodWasted)) * 100) 
+    : 0;
+  const savePercent = (data.totalFoodSaved + data.totalFoodWasted) > 0 ? 100 - wastePercent : 0;
 
   return (
     <View style={[styles.flex, { paddingTop: insets.top }]}>
