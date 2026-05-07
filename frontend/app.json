@@ -1,8 +1,14 @@
 {
   "expo": {
-    "name": "FoodWasteReducer",
-    "slug": "food-waste-reducer",
+    "name": "SmartPlate",
+    "slug": "smart-plate",
     "version": "1.0.0",
+    "icon": "./assets/logo.png",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "platforms": [
       "android",
       "ios"

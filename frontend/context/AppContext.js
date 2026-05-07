@@ -30,7 +30,7 @@ export function AppProvider({ children }) {
   const [allUsers, setAllUsers] = useState([]);
   const [allInventoryEntries, setAllInventoryEntries] = useState([]);
   const [donationComplaints, setDonationComplaints] = useState([]);
-  const [adminStats, setAdminStats] = useState({ totalUsers: 0, totalItemsTracked: 0, totalDonations: 0 });
+  const [adminStats, setAdminStats] = useState(null);
 
   // Community donations (locations are static config, drop-offs come from DB)
   const [communityDropOffs, setCommunityDropOffs] = useState({});

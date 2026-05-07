@@ -80,7 +80,7 @@ export default function AdminAnalytics() {
   const { adminStats } = useAppContext();
   const insets = useSafeAreaInsets();
   
-  const data = adminStats || emptyData;
+  const data = (adminStats && adminStats.categoryBreakdown) ? adminStats : emptyData;
   const maxCategory = Math.max(...data.categoryBreakdown.map((c) => c.saved + c.wasted), 1);
   const maxSaved = Math.max(...data.weeklyTrend.map((w) => w.saved), 1);
   const wastePercent = (data.totalFoodSaved + data.totalFoodWasted) > 0 

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
@@ -55,9 +56,11 @@ export default function LoginScreen({ navigation }) {
       >
         {/* Hero area */}
         <View style={styles.hero}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoEmoji}>🌿</Text>
-          </View>
+          <Image 
+            source={require('../assets/logo.png')} 
+            style={styles.logoImage} 
+            resizeMode="contain" 
+          />
           <Text style={styles.appName}>SmartPlate</Text>
           <Text style={styles.tagline}>Reduce food waste. Save money. Share more.</Text>
         </View>
@@ -133,18 +136,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.xl,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 100,
+    height: 100,
     marginBottom: SPACING.md,
-    ...SHADOW.medium,
-  },
-  logoEmoji: {
-    fontSize: 36,
+    borderRadius: 20,
   },
   appName: {
     fontSize: 30,
