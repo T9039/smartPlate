@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "SmartPlate",
-    "slug": "smart-plate",
+    "slug": "food-waste-reducer",
     "version": "1.0.0",
     "icon": "./assets/logo.png",
     "splash": {
