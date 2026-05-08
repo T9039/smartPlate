@@ -75,6 +75,7 @@ export default function LoginScreen({ navigation }) {
             />
           </View>
 
+          <View style={styles.inputWrap}>
             <View style={styles.passwordRow}>
               <Text style={styles.inputLabel}>Password</Text>
               <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>

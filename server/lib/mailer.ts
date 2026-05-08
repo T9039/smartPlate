@@ -75,7 +75,7 @@ export const sendResetEmail = async (toEmail: string, code: string) => {
     try {
       console.log(`[MAILER] Attempting to send via Real SMTP to ${toEmail}`);
       await realSmtpTransport.sendMail({
-        from: \`SmartPlate <\${REAL_SENDER_ADDRESS}>\`,
+        from: `SmartPlate <${REAL_SENDER_ADDRESS}>`,
         to: toEmail,
         subject,
         text,
@@ -94,7 +94,7 @@ export const sendResetEmail = async (toEmail: string, code: string) => {
     try {
       console.log(`[MAILER] Attempting to send via Mailtrap Sandbox to ${toEmail}`);
       await mailtrapTransport.sendMail({
-        from: \`SmartPlate <\${REAL_SENDER_ADDRESS}>\`,
+        from: `SmartPlate <${REAL_SENDER_ADDRESS}>`,
         to: toEmail,
         subject,
         text,
