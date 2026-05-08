@@ -11,10 +11,10 @@ import InventoryItemCard from '../components/InventoryItemCard';
 import EmptyState from '../components/EmptyState';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
-const FILTERS = ['All', 'Expiring Soon', 'Used Recently'];
+const FILTERS = ['All', 'Expiring Soon', 'Expired', 'Used Recently'];
 
 export default function InventoryScreen({ navigation }) {
-  const { inventory, markItemUsed, addToDonationHamper, removeFromInventory } = useAppContext();
+  const { inventory, markItemUsed, addToDonationHamper, removeFromInventory, throwAwayItem } = useAppContext();
   const { alert } = useAlert();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
@@ -32,6 +32,8 @@ export default function InventoryScreen({ navigation }) {
     let items = inventory;
     if (filter === 'Expiring Soon') {
       items = items.filter((i) => isExpiringSoon(i.expiryDate) && !i.usedRecently);
+    } else if (filter === 'Expired') {
+      items = items.filter((i) => getDaysUntilExpiry(i.expiryDate) < 0 && !i.usedRecently);
     } else if (filter === 'Used Recently') {
       items = items.filter((i) => i.usedRecently);
     } else {
@@ -65,6 +67,13 @@ export default function InventoryScreen({ navigation }) {
   const handleDelete = (item) => {
     alert('Remove item?', `Remove "${item.name}" from your records entirely?`, [
       { text: 'Yes, Remove', style: 'destructive', onPress: () => { removeFromInventory(item.id); } },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const handleThrowAway = (item) => {
+    alert('Throw away?', `Throw away "${item.name}"? This will log it as wasted food.`, [
+      { text: 'Yes, Throw Away', style: 'destructive', onPress: () => { throwAwayItem(item.id); } },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
@@ -128,6 +137,7 @@ export default function InventoryScreen({ navigation }) {
               onUseUp={() => handleUseUp(item)} 
               onDonate={() => handleDonate(item)} 
               onDelete={() => handleDelete(item)}
+              onThrowAway={() => handleThrowAway(item)}
             />
           ))
         )}

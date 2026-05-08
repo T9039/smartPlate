@@ -319,6 +319,23 @@ export function AppProvider({ children }) {
     setImpact((prev) => ({ ...prev, itemsSaved: prev.itemsSaved + 1, moneySaved: prev.moneySaved + 20 }));
   };
 
+  const throwAwayItem = async (id) => {
+    try {
+      const item = inventory.find(i => i.id.toString() === id.toString());
+      if (item) {
+        await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'wasted' });
+        await api.deleteInventoryItem(id);
+        
+        setInventory(prev => prev.filter(i => i.id.toString() !== id.toString()));
+        addNotification('Item Thrown Away', `You threw away ${item.name}. Try freezing it next time!`, 'warning');
+        toast('Item thrown away and logged', 'info');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error', 'Could not throw away item. Please try again.');
+    }
+  };
+
   // ─── Donations ─────────────────────────────────────────────────────────────
   const addToDonationHamper = async (item) => {
     // Prevent duplicates
@@ -457,7 +474,7 @@ export function AppProvider({ children }) {
         communityDropOffs, incomingRequests, donationLocations,
         allUsers, allInventoryEntries, donationComplaints, adminStats,
         login, register, logout,
-        addToInventory, removeFromInventory, markItemUsed,
+        addToInventory, removeFromInventory, markItemUsed, throwAwayItem,
         addToDonationHamper, removeFromDonationHamper,
         updateUser, setActiveTheme,
         updateChallengeTier, addChallengeTier,

@@ -76,7 +76,9 @@ router.get("/insights", async (req: AuthenticatedRequest, res: Response) => {
       totalMoneyWasted,
       mostConsumed: mostConsumed.slice(0, 3),
       mostWasted: mostWasted.slice(0, 3),
-      suggestions
+      suggestions,
+      consumedCounts,
+      wastedCounts
     });
 
   } catch (e: any) {

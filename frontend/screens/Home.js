@@ -139,15 +139,7 @@ export default function HomeScreen({ navigation }) {
         {/* Algo Insights */}
         <View style={{ marginBottom: SPACING.lg }}>
           <Text style={styles.sectionTitle}>Algo Insights</Text>
-          {algoInsights && algoInsights.suggestions && algoInsights.suggestions.length > 0 ? (
-            algoInsights.suggestions.map((suggestion, index) => (
-              <View key={index} style={{ marginBottom: SPACING.sm }}>
-                <InsightCard message={suggestion} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
-              </View>
-            ))
-          ) : (
-            <InsightCard message={insightMessage} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
-          )}
+          <InsightCard message={insightMessage} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
         </View>
 
         {/* Expiring alert */}

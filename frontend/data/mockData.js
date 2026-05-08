@@ -68,7 +68,12 @@ export const getExpiryLabel = (expiryDate) => {
   return `${Math.ceil(days / 30)} months left`;
 };
 
-export const isExpiringSoon = (expiryDate) => getDaysUntilExpiry(expiryDate) <= 5;
+export const isExpiringSoon = (expiryDate) => {
+  const days = getDaysUntilExpiry(expiryDate);
+  return days >= 0 && days <= 5;
+};
+
+export const isExpired = (expiryDate) => getDaysUntilExpiry(expiryDate) < 0;
 
 export const getValidIcon = (iconString) => {
   if (!iconString) return 'nutrition-outline';

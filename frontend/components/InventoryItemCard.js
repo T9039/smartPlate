@@ -5,7 +5,7 @@ import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 import { getExpiryLabel, getDaysUntilExpiry, getValidIcon } from '../data/mockData';
 import Badge from './Badge';
 
-export default function InventoryItemCard({ item, onPress, onUseUp, onDonate, onDelete }) {
+export default function InventoryItemCard({ item, onPress, onUseUp, onDonate, onDelete, onThrowAway }) {
   const days = getDaysUntilExpiry(item.expiryDate);
   const expiring = days <= 5;
   const expired = days < 0;
@@ -40,6 +40,10 @@ export default function InventoryItemCard({ item, onPress, onUseUp, onDonate, on
           {item.usedRecently ? (
             <TouchableOpacity style={styles.useBtn} onPress={onDelete} activeOpacity={0.7}>
               <Text style={styles.useBtnText}>Remove</Text>
+            </TouchableOpacity>
+          ) : expired ? (
+            <TouchableOpacity style={[styles.useBtn, { backgroundColor: COLORS.warning }]} onPress={onThrowAway} activeOpacity={0.7}>
+              <Text style={[styles.useBtnText, { color: '#fff' }]}>Throw Away</Text>
             </TouchableOpacity>
           ) : (
             <>
