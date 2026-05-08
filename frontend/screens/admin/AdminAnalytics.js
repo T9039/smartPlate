@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
-import { LineChart, PieChart } from 'react-native-gifted-charts';
+import { LineChart, PieChart } from 'react-native-chart-kit';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
+
+const screenWidth = Dimensions.get('window').width;
 
 const A = {
   bg: '#F0F4F8', surface: '#FFFFFF', headerBg: '#1B4332', headerText: '#FFFFFF',
@@ -24,6 +26,8 @@ const emptyData = {
   topWastedCategory: '—', topDonatedItem: '—',
   weeklyTrend: [{ week: '—', saved: 0, wasted: 0, donations: 0 }],
   categoryBreakdown: [],
+  packagingBreakdown: [],
+  topEcoScore: '—',
   donationsByLocation: [],
 };
 
@@ -42,7 +46,40 @@ function BigStat({ label, value, icon, color, sub }) {
   );
 }
 
+function BarRow({ label, savedVal, wastedVal, maxVal }) {
+  const savedWidth = Math.max((savedVal / maxVal) * 100, 2);
+  const wastedWidth = Math.max((wastedVal / maxVal) * 100, 2);
+  return (
+    <View style={styles.barRow}>
+      <Text style={styles.barLabel}>{label}</Text>
+      <View style={styles.barTracks}>
+        <View style={styles.barTrack}>
+          <View style={[styles.barFillSaved, { width: `${savedWidth}%` }]} />
+        </View>
+        <View style={styles.barTrack}>
+          <View style={[styles.barFillWasted, { width: `${wastedWidth}%` }]} />
+        </View>
+      </View>
+      <View style={styles.barValues}>
+        <Text style={[styles.barValue, { color: A.success }]}>{savedVal} kg</Text>
+        <Text style={[styles.barValue, { color: A.danger }]}>{wastedVal} kg</Text>
+      </View>
+    </View>
+  );
+}
 
+function WeekBar({ week, saved, wasted, donations, maxSaved }) {
+  const barH = Math.max((saved / maxSaved) * 80, 4);
+  return (
+    <View style={styles.weekCol}>
+      <Text style={styles.weekDonCount}>{donations}</Text>
+      <View style={styles.weekBarWrap}>
+        <View style={[styles.weekBarSaved, { height: barH }]} />
+      </View>
+      <Text style={styles.weekLabel}>{week}</Text>
+    </View>
+  );
+}
 
 export default function AdminAnalytics() {
   const { adminStats } = useAppContext();
@@ -107,72 +144,85 @@ export default function AdminAnalytics() {
         {/* Weekly Trend */}
         <SectionTitle title="Weekly Trend (Items Saved vs Wasted)" />
         <View style={styles.card}>
-          <View style={styles.weekLegend}>
-            <View style={styles.legendDot} /><Text style={styles.legendText}>Saved</Text>
-            <View style={[styles.legendDot, { backgroundColor: A.danger, marginLeft: SPACING.md }]} /><Text style={styles.legendText}>Wasted</Text>
-          </View>
-          <View style={{ marginTop: SPACING.md, alignItems: 'center' }}>
-            <LineChart
-              data={data.weeklyTrend.map(w => ({ value: w.saved, label: w.week }))}
-              data2={data.weeklyTrend.map(w => ({ value: w.wasted }))}
-              color1={A.success}
-              color2={A.danger}
-              dataPointsColor1={A.success}
-              dataPointsColor2={A.danger}
-              spacing={60}
-              initialSpacing={20}
-              yAxisTextStyle={{ color: A.textMuted, fontSize: 10 }}
-              xAxisLabelTextStyle={{ color: A.textLight, fontSize: 10, width: 80, marginLeft: -15 }}
-              hideRules
-              yAxisColor={A.border}
-              xAxisColor={A.border}
-              thickness1={3}
-              thickness2={3}
-              curved
-              isAnimated
-              height={140}
-            />
-          </View>
+          <LineChart
+            data={{
+              labels: data.weeklyTrend.map(w => w.week),
+              datasets: [
+                { data: data.weeklyTrend.map(w => w.saved), color: (opacity = 1) => A.success, strokeWidth: 3 },
+                { data: data.weeklyTrend.map(w => w.wasted), color: (opacity = 1) => A.danger, strokeWidth: 3 }
+              ],
+              legend: ["Saved", "Wasted"]
+            }}
+            width={screenWidth - SPACING.lg * 2 - SPACING.md * 2}
+            height={220}
+            chartConfig={{
+              backgroundColor: A.surface,
+              backgroundGradientFrom: A.surface,
+              backgroundGradientTo: A.surface,
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(200, 200, 200, ${opacity})`,
+              labelColor: (opacity = 1) => A.textLight,
+              propsForDots: { r: "4", strokeWidth: "2" }
+            }}
+            bezier
+            style={{ marginVertical: 8 }}
+          />
         </View>
 
         {/* Category Breakdown */}
         <SectionTitle title="Category Breakdown (Items Saved)" />
-        <View style={[styles.card, { alignItems: 'center', paddingVertical: SPACING.xl }]}>
+        <View style={[styles.card, { paddingBottom: SPACING.xl }]}>
           {data.categoryBreakdown.length > 0 ? (
             <PieChart
               data={data.categoryBreakdown.map((cat, idx) => {
                 const colors = [A.primaryLight, A.info, A.warning, A.danger, '#9b59b6', '#34495e'];
-                return { value: cat.saved || 1, color: colors[idx % colors.length], text: cat.category };
+                return {
+                  name: cat.category,
+                  population: cat.saved || 1,
+                  color: colors[idx % colors.length],
+                  legendFontColor: A.textMid,
+                  legendFontSize: 12
+                };
               })}
-              donut
-              showText
-              textColor="#fff"
-              radius={100}
-              innerRadius={55}
-              textSize={12}
-              centerLabelComponent={() => {
-                return (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22, fontWeight: '800', color: A.textDark }}>{data.totalFoodSaved}</Text>
-                    <Text style={{ fontSize: 10, color: A.textLight }}>Saved</Text>
-                  </View>
-                );
-              }}
+              width={screenWidth - SPACING.lg * 2 - SPACING.md * 2}
+              height={220}
+              chartConfig={{ color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})` }}
+              accessor={"population"}
+              backgroundColor={"transparent"}
+              paddingLeft={"15"}
+              absolute
             />
           ) : (
             <Text style={{ color: A.textMuted }}>No category data yet.</Text>
           )}
-          <View style={styles.pieLegendWrap}>
-            {data.categoryBreakdown.map((cat, idx) => {
-              const colors = [A.primaryLight, A.info, A.warning, A.danger, '#9b59b6', '#34495e'];
-              return (
-                <View key={cat.category} style={styles.pieLegendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: colors[idx % colors.length] }]} />
-                  <Text style={styles.legendText}>{cat.category}</Text>
-                </View>
-              );
-            })}
-          </View>
+        </View>
+
+        {/* Packaging Breakdown */}
+        <SectionTitle title="Packaging Type Breakdown" />
+        <View style={[styles.card, { paddingBottom: SPACING.xl }]}>
+          {data.packagingBreakdown.length > 0 ? (
+            <PieChart
+              data={data.packagingBreakdown.map((pkg, idx) => {
+                const colors = ['#F39C12', '#27AE60', '#2980B9', '#8E44AD', '#7F8C8D'];
+                return {
+                  name: pkg.type,
+                  population: pkg.count || 1,
+                  color: colors[idx % colors.length],
+                  legendFontColor: A.textMid,
+                  legendFontSize: 12
+                };
+              })}
+              width={screenWidth - SPACING.lg * 2 - SPACING.md * 2}
+              height={220}
+              chartConfig={{ color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})` }}
+              accessor={"population"}
+              backgroundColor={"transparent"}
+              paddingLeft={"15"}
+              absolute
+            />
+          ) : (
+            <Text style={{ color: A.textMuted }}>No packaging data yet.</Text>
+          )}
         </View>
 
         {/* Donations by location */}
@@ -199,9 +249,10 @@ export default function AdminAnalytics() {
             { label: 'Avg Waste Per User', value: `${data.avgWastePerUser} kg`, icon: 'person-outline', color: A.warning },
             { label: 'Top Wasted Category', value: data.topWastedCategory, icon: 'warning-outline', color: A.danger },
             { label: 'Most Donated Item', value: data.topDonatedItem, icon: 'trophy-outline', color: A.success },
+            { label: 'Most Common Eco-Score', value: `Grade ${data.topEcoScore}`, icon: 'leaf-outline', color: A.primaryLight },
             { label: 'Active Users', value: `${data.activeUsers} of ${data.totalUsers}`, icon: 'people-outline', color: A.info },
           ].map((insight, idx) => (
-            <View key={insight.label} style={[styles.insightRow, idx < 3 && styles.insightRowBorder]}>
+            <View key={insight.label} style={[styles.insightRow, idx < 4 && styles.insightRowBorder]}>
               <Ionicons name={insight.icon} size={28} color={insight.color} style={{ marginRight: SPACING.sm }} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.insightLabel}>{insight.label}</Text>

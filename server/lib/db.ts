@@ -41,6 +41,10 @@ sqliteDb.exec(`
         in_hamper       BOOLEAN DEFAULT 0,
         flagged         BOOLEAN DEFAULT 0,
         flag_reason     TEXT,
+        image_url       TEXT,
+        brand           TEXT,
+        packaging       TEXT,
+        ecoscore        TEXT,
         created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
@@ -52,6 +56,7 @@ sqliteDb.exec(`
         item_name       TEXT    NOT NULL,
         quantity        REAL,
         action          TEXT    NOT NULL CHECK(action IN ('consumed', 'wasted')),
+        packaging       TEXT,
         logged_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
@@ -204,6 +209,13 @@ addColumnIfMissing('users', 'avatar',       'TEXT');
 addColumnIfMissing('inventory', 'flagged',    'BOOLEAN DEFAULT 0');
 addColumnIfMissing('inventory', 'flag_reason','TEXT');
 addColumnIfMissing('inventory', 'in_hamper',  'BOOLEAN DEFAULT 0');
+addColumnIfMissing('inventory', 'image_url',  'TEXT');
+addColumnIfMissing('inventory', 'brand',      'TEXT');
+addColumnIfMissing('inventory', 'packaging',  'TEXT');
+addColumnIfMissing('inventory', 'ecoscore',   'TEXT');
+
+// waste_logs
+addColumnIfMissing('waste_logs', 'packaging', 'TEXT');
 
 // ─── Async-compatible query helpers ───────────────────────────────────────────
 export const query = async (sql: string, params: any[] = []) => {

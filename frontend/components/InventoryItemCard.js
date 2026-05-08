@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 import { getExpiryLabel, getDaysUntilExpiry, getValidIcon } from '../data/mockData';
@@ -19,8 +19,12 @@ export default function InventoryItemCard({ item, onPress, onUseUp, onDonate }) 
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.iconWrap}>
-        <Ionicons name={getValidIcon(item.emoji)} size={24} color={COLORS.primary} />
+      <View style={[styles.iconWrap, item.imageUrl && { overflow: 'hidden', padding: 0 }]}>
+        {item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+        ) : (
+          <Ionicons name={getValidIcon(item.emoji)} size={24} color={COLORS.primary} />
+        )}
       </View>
 
       <View style={styles.content}>

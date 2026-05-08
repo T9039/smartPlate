@@ -208,6 +208,10 @@ export function AppProvider({ children }) {
         expiry_date: item.expiryDate,
         added_date: new Date().toISOString().split('T')[0],
         emoji: item.emoji || 'nutrition-outline',
+        image_url: item.image_url,
+        brand: item.brand,
+        packaging: item.packaging,
+        ecoscore: item.ecoscore,
       };
       const addedItem = await api.addInventoryItem(dbItem);
       setInventory((prev) => [addedItem, ...prev]);

@@ -23,6 +23,10 @@ const toInventoryItem = (row: any) => ({
   donated:      !!row.donated,
   flagged:      !!row.flagged,
   flagReason:   row.flag_reason,
+  imageUrl:     row.image_url,
+  brand:        row.brand,
+  packaging:    row.packaging,
+  ecoscore:     row.ecoscore,
   insights:     (() => { try { return row.insights ? JSON.parse(row.insights) : null; } catch(e) { return null; } })(),
   createdAt:    row.created_at,
 });
@@ -33,16 +37,17 @@ router.get("/", authenticateToken, async (req: AuthenticatedRequest, res: Respon
 });
 
 router.post("/", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-  const { name, category, quantity, unit, price, expiry_date, added_date, emoji } = req.body;
+  const { name, category, quantity, unit, price, expiry_date, added_date, emoji, image_url, brand, packaging, ecoscore } = req.body;
   const result = await db.query(`
-    INSERT INTO inventory (user_id, name, category, quantity, unit, price, expiry_date, added_date, emoji)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [req.user.id, name, category, quantity, unit, price, expiry_date, added_date, emoji]) as any;
+    INSERT INTO inventory (user_id, name, category, quantity, unit, price, expiry_date, added_date, emoji, image_url, brand, packaging, ecoscore)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [req.user.id, name, category, quantity, unit, price, expiry_date, added_date, emoji, image_url, brand, packaging, ecoscore]) as any;
   res.json(toInventoryItem({
     id: result.insertId,
     user_id: req.user.id,
     name, category, quantity, unit, price,
     expiry_date, added_date, emoji,
+    image_url, brand, packaging, ecoscore,
     used_recently: 0, expiring_soon: 0, donated: 0, flagged: 0,
     flag_reason: null, barcode: null, created_at: new Date().toISOString(),
   }));

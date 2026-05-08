@@ -178,6 +178,22 @@ router.get("/stats", async (req: Request, res: Response) => {
             GROUP BY i.category
         `) as any[];
 
+        // 4. Packaging breakdown
+        const packaging = await db.query(`
+            SELECT packaging as type, COUNT(*) as count
+            FROM inventory
+            WHERE packaging IS NOT NULL AND packaging != 'None'
+            GROUP BY packaging
+        `) as any[];
+
+        // 5. Most common Eco-Score
+        const topEcoScore = await db.queryOne(`
+            SELECT ecoscore, COUNT(*) as count
+            FROM inventory
+            WHERE ecoscore IS NOT NULL AND ecoscore != ''
+            GROUP BY ecoscore ORDER BY count DESC LIMIT 1
+        `) as any;
+
         res.json({
             totalUsers: totalUsers.count,
             activeUsers: activeUsers.count,
@@ -190,8 +206,10 @@ router.get("/stats", async (req: Request, res: Response) => {
             topWastedCategory: topWasted?.category || '—',
             topDonatedItem: topDonated?.name || '—',
             avgWastePerUser: Number(avgWastePerUser),
+            topEcoScore: topEcoScore?.ecoscore || '—',
             weeklyTrend: weeklyTrend.reverse(),
             categoryBreakdown: categories.length ? categories : [{ category: "Produce", saved: 0, wasted: 0 }],
+            packagingBreakdown: packaging.length ? packaging : [{ type: "Plastic", count: 0 }],
             donationsByLocation: [
                 { location: "Community Center", count: Math.ceil(totalDonations.count * 0.6) },
                 { location: "Local Shelter", count: Math.floor(totalDonations.count * 0.4) }
