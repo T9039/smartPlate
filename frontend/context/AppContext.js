@@ -88,8 +88,30 @@ export function AppProvider({ children }) {
 
       try {
         const notifsData = await api.getNotifications();
-        setNotifications(notifsData);
-      } catch (e) { console.warn('Failed to fetch notifications', e); }
+        
+        // Sync retro-active notifications for existing items
+        const newNotifs = [];
+        
+        // 1. Expiring items
+        for (const item of invData.filter(i => i.expiringSoon)) {
+          const exists = notifsData.some(n => n.title === 'Expiring Soon' && n.message.includes(item.name));
+          if (!exists) {
+            const n = await api.createNotification('Expiring Soon', `${item.name} is expiring soon! Use it or donate it.`, 'warning');
+            newNotifs.push(n);
+          }
+        }
+
+        // 2. Hamper items
+        for (const item of donData) {
+          const exists = notifsData.some(n => n.title === 'Added to Hamper' && n.message.includes(item.name));
+          if (!exists) {
+            const n = await api.createNotification('Added to Hamper', `${item.name} is ready to be donated!`, 'info');
+            newNotifs.push(n);
+          }
+        }
+        
+        setNotifications([...newNotifs, ...notifsData]);
+      } catch (e) { console.warn('Failed to fetch/sync notifications', e); }
 
     } catch (e) {
       console.warn('Failed to fetch data from API:', e);
