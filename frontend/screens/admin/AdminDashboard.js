@@ -35,7 +35,7 @@ export default function AdminDashboard({ navigation }) {
   const flaggedEntries = allInventoryEntries.filter((e) => e.flagged).length;
   const openComplaints = donationComplaints.filter((c) => c.status === 'open').length;
   
-  const totalFoodSaved = adminStats?.totalItemsTracked || 0;
+  const totalFoodSaved = adminStats?.totalFoodSaved || 0;
   const totalDonations = adminStats?.totalDonations || 0;
 
   const handleLogout = () => {

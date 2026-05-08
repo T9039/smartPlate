@@ -409,6 +409,7 @@ export default function AddFoodScreen({ navigation }) {
             value={dateObj}
             mode="date"
             display="default"
+            minimumDate={new Date()}
             onChange={onDateSelected}
           />
         )}
