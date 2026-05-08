@@ -19,7 +19,7 @@ const A = {
 // Fallback empty data
 const emptyData = {
   totalFoodSaved: 0, totalFoodWasted: 0, totalDonations: 0,
-  totalUsers: 0, activeUsers: 0, totalItemsSaved: 0, moneySavedTotal: 0,
+  totalUsers: 0, activeUsers: 0, totalItemsSaved: 0, moneySavedTotal: 0, avgWastePerUser: 0,
   topWastedCategory: '—', topDonatedItem: '—',
   weeklyTrend: [{ week: '—', saved: 0, wasted: 0, donations: 0 }],
   categoryBreakdown: [],
@@ -107,7 +107,14 @@ export default function AdminAnalytics() {
           <BigStat label="Money Saved" value={`R${data.moneySavedTotal.toLocaleString()}`} icon="cash-outline" color={A.primaryMed} />
         </View>
 
-        {/* Save vs waste summary */}
+        {/* Environmental Impact */}
+        <SectionTitle title="Environmental Impact" />
+        <View style={styles.bigStatsGrid}>
+          <BigStat label="CO₂ Prevented" value={`${(data.totalFoodSaved * 2.5).toFixed(1)} kg`} icon="cloud-outline" color="#3498DB" sub="Emissions saved" />
+          <BigStat label="Water Saved" value={`${(data.totalFoodSaved * 800).toLocaleString()} L`} icon="water-outline" color="#2980B9" sub="Water footprint offset" />
+        </View>
+
+        {/* Save vs Waste summary */}
         <SectionTitle title="Save vs Waste Rate" />
         <View style={styles.card}>
           <View style={styles.rateRow}>
@@ -176,11 +183,12 @@ export default function AdminAnalytics() {
         <SectionTitle title="Platform Insights" />
         <View style={styles.insightsCard}>
           {[
+            { label: 'Avg Waste Per User', value: `${data.avgWastePerUser} kg`, icon: 'person-outline', color: A.warning },
             { label: 'Top Wasted Category', value: data.topWastedCategory, icon: 'warning-outline', color: A.danger },
             { label: 'Most Donated Item', value: data.topDonatedItem, icon: 'trophy-outline', color: A.success },
             { label: 'Active Users', value: `${data.activeUsers} of ${data.totalUsers}`, icon: 'people-outline', color: A.info },
           ].map((insight, idx) => (
-            <View key={insight.label} style={[styles.insightRow, idx < 2 && styles.insightRowBorder]}>
+            <View key={insight.label} style={[styles.insightRow, idx < 3 && styles.insightRowBorder]}>
               <Ionicons name={insight.icon} size={28} color={insight.color} style={{ marginRight: SPACING.sm }} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.insightLabel}>{insight.label}</Text>

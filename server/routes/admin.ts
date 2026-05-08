@@ -128,22 +128,54 @@ router.get("/stats", async (req: Request, res: Response) => {
             GROUP BY i.name ORDER BY count DESC LIMIT 1
         `) as { name: string } | undefined;
 
-        // Mock weekly trend for now (last 4 weeks)
-        const weeklyTrend = [
-            { week: "Week 1", saved: 10, wasted: 2, donations: 3 },
-            { week: "Week 2", saved: 15, wasted: 4, donations: 5 },
-            { week: "Week 3", saved: 8, wasted: 1, donations: 2 },
-            { week: "This Week", saved: Math.floor(foodSaved?.qty || 0), wasted: Math.floor(foodWasted?.qty || 0), donations: totalDonations.count }
-        ];
+        // 1. Real Time-Series (Weekly Trend)
+        // Group waste_logs by Year-Week using strftime
+        const weeklyLogs = await db.query(`
+            SELECT 
+                strftime('%Y-%W', logged_at) as week_key,
+                SUM(CASE WHEN action = 'consumed' THEN quantity ELSE 0 END) as saved,
+                SUM(CASE WHEN action = 'wasted' THEN quantity ELSE 0 END) as wasted
+            FROM waste_logs
+            WHERE logged_at >= date('now', '-28 days')
+            GROUP BY week_key
+            ORDER BY week_key DESC
+            LIMIT 4
+        `) as { week_key: string, saved: number, wasted: number }[];
 
-        // Category breakdown
+        // Fill empty weeks and structure for frontend
+        const weeklyTrend = [];
+        for (let i = 3; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i * 7);
+            const y = d.getFullYear();
+            // simple week number calc
+            const start = new Date(d.getFullYear(), 0, 1);
+            const w = Math.ceil((((d.getTime() - start.getTime()) / 86400000) + start.getDay() + 1) / 7);
+            const week_key = `${y}-${w.toString().padStart(2, '0')}`;
+            
+            const match = weeklyLogs.find(l => l.week_key === week_key);
+            weeklyTrend.push({
+                week: i === 0 ? "This Week" : `Week ${4 - i}`,
+                saved: match ? match.saved : 0,
+                wasted: match ? match.wasted : 0,
+                donations: i === 0 ? totalDonations.count : Math.floor(totalDonations.count / 4) // Mock historical donations if no date column
+            });
+        }
+
+        // 2. Average waste per user
+        const avgWastePerUser = activeUsers.count > 0 
+            ? ((foodWasted?.qty || 0) / activeUsers.count).toFixed(1) 
+            : 0;
+
+        // 3. Category breakdown
         const categories = await db.query(`
-            SELECT category, 
-                   SUM(CASE WHEN used_recently = 1 THEN quantity ELSE 0 END) as saved,
-                   0 as wasted 
-            FROM inventory 
-            WHERE category IS NOT NULL
-            GROUP BY category
+            SELECT i.category, 
+                   SUM(CASE WHEN w.action = 'consumed' THEN w.quantity ELSE 0 END) as saved,
+                   SUM(CASE WHEN w.action = 'wasted' THEN w.quantity ELSE 0 END) as wasted 
+            FROM waste_logs w
+            JOIN inventory i ON w.item_name = i.name
+            WHERE i.category IS NOT NULL
+            GROUP BY i.category
         `) as any[];
 
         res.json({
@@ -154,10 +186,11 @@ router.get("/stats", async (req: Request, res: Response) => {
             totalFoodSaved: Math.floor(foodSaved?.qty || 0),
             totalFoodWasted: Math.floor(foodWasted?.qty || 0),
             totalItemsSaved: foodSaved?.cnt || 0,
-            moneySavedTotal: (foodSaved?.cnt || 0) * 20,
+            moneySavedTotal: (foodSaved?.qty || 0) * 15, // Estimate 15 per kg
             topWastedCategory: topWasted?.category || '—',
             topDonatedItem: topDonated?.name || '—',
-            weeklyTrend: weeklyTrend,
+            avgWastePerUser: Number(avgWastePerUser),
+            weeklyTrend: weeklyTrend.reverse(),
             categoryBreakdown: categories.length ? categories : [{ category: "Produce", saved: 0, wasted: 0 }],
             donationsByLocation: [
                 { location: "Community Center", count: Math.ceil(totalDonations.count * 0.6) },
