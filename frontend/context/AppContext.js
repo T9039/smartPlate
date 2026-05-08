@@ -14,11 +14,12 @@ export function AppProvider({ children }) {
   const [donationHamper, setDonationHamper] = useState([]);
   const [impact, setImpact] = useState({ itemsSaved: 0, moneySaved: 0, donationsMade: 0 });
 
-  // AI & Notifications
+  // AI, Algo, & Notifications
   const [recipes, setRecipes] = useState([]);
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [nudges, setNudges] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [algoInsights, setAlgoInsights] = useState(null);
 
   // Challenge
   const [challengeItemsUsedToday, setChallengeItemsUsedToday] = useState(0);
@@ -85,6 +86,11 @@ export function AppProvider({ children }) {
         const nudgesData = await api.getNudges();
         setNudges(nudgesData);
       } catch (e) { console.warn('Failed to fetch nudges', e); }
+
+      try {
+        const algoData = await api.getAlgoInsights();
+        setAlgoInsights(algoData);
+      } catch (e) { console.warn('Failed to fetch algo insights', e); }
 
       try {
         const notifsData = await api.getNotifications();
@@ -461,6 +467,7 @@ export function AppProvider({ children }) {
         adminResolveComplaint,
         fetchRecipes, fetchSavedRecipes, saveRecipe, unsaveRecipe,
         loadNotifications, addNotification, markNotificationRead, deleteNotification,
+        algoInsights,
       }}
     >
       {children}

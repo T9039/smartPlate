@@ -11,7 +11,7 @@ import { getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function HomeScreen({ navigation }) {
-  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests, notifications, markNotificationRead, deleteNotification } = useAppContext();
+  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests, notifications, markNotificationRead, deleteNotification, algoInsights } = useAppContext();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
@@ -136,10 +136,18 @@ export default function HomeScreen({ navigation }) {
           <ActionCard icon="heart-outline" title="Donate Food" subtitle="Help your community" onPress={() => navigation.navigate('Donations')} accent={C.primary} />
         </View>
 
-        {/* AI Insights */}
+        {/* Algo Insights */}
         <View style={{ marginBottom: SPACING.lg }}>
-          <Text style={styles.sectionTitle}>AI Insights</Text>
-          <InsightCard message={insightMessage} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
+          <Text style={styles.sectionTitle}>Algo Insights</Text>
+          {algoInsights && algoInsights.suggestions && algoInsights.suggestions.length > 0 ? (
+            algoInsights.suggestions.map((suggestion, index) => (
+              <View key={index} style={{ marginBottom: SPACING.sm }}>
+                <InsightCard message={suggestion} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
+              </View>
+            ))
+          ) : (
+            <InsightCard message={insightMessage} onViewDetails={() => navigation.navigate('AIInsightsDetails')} />
+          )}
         </View>
 
         {/* Expiring alert */}

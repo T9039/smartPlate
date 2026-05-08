@@ -12,6 +12,7 @@ import aiRouter from "./routes/ai.js";
 import analyticsRouter from "./routes/analytics.js";
 import recipesRouter from "./routes/recipes.js";
 import adminRouter from "./routes/admin.js";
+import algoRouter from "./routes/algo.js";
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -35,6 +36,7 @@ app.use("/api/ai", aiRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/recipes", recipesRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/algo", algoRouter);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`smartPlate Server running on http://localhost:${PORT}`);

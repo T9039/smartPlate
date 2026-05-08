@@ -252,18 +252,34 @@ export const api = {
 
   // Notifications
   getNotifications: async () => {
-    return fetchAPI('/notifications', { method: 'GET' });
+    const res = await fetch(`${API_URL}/notifications`, { method: 'GET', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch notifications');
+    return res.json();
   },
   markNotificationRead: async (id) => {
-    return fetchAPI(`/notifications/${id}/read`, { method: 'PUT' });
+    const res = await fetch(`${API_URL}/notifications/${id}/read`, { method: 'PUT', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to mark notification read');
+    return res.json();
   },
   deleteNotification: async (id) => {
-    return fetchAPI(`/notifications/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/notifications/${id}`, { method: 'DELETE', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to delete notification');
+    return res.json();
   },
   createNotification: async (title, message, type = 'info') => {
-    return fetchAPI('/notifications', {
+    const res = await fetch(`${API_URL}/notifications`, {
       method: 'POST',
+      headers: defaultHeaders(),
       body: JSON.stringify({ title, message, type }),
     });
+    if (!res.ok) throw new Error('Failed to create notification');
+    return res.json();
+  },
+
+  // Algo Insights
+  getAlgoInsights: async () => {
+    const res = await fetch(`${API_URL}/algo/insights`, { method: 'GET', headers: defaultHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch algo insights');
+    return res.json();
   },
 };

@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 
-export default function InsightCard({ message, onViewDetails }) {
+export default function InsightCard({ message, onViewDetails, title = "Algo Insight", iconStr = "📊" }) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.iconWrap}>
-          <Text style={styles.icon}>🤖</Text>
+          <Text style={styles.icon}>{iconStr}</Text>
         </View>
-        <Text style={styles.tag}>AI Insight</Text>
+        <Text style={styles.tag}>{title}</Text>
       </View>
       <Text style={styles.message}>{message}</Text>
       <TouchableOpacity style={styles.ctaBtn} onPress={onViewDetails} activeOpacity={0.7}>
