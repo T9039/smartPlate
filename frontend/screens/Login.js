@@ -103,12 +103,12 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* POPI Inlined */}
+        {/* POPI ACT */}
         <TouchableOpacity 
           style={styles.popiBtn}
           onPress={() => alert('POPI Act Compliance', 'We strictly adhere to the Protection of Personal Information Act (POPIA). Your data is encrypted, never sold to third parties, and only used to enhance your SmartPlate experience.')}
         >
-          <Text style={styles.popiText}>POPI Inlined</Text>
+          <Text style={styles.popiText}>POPI ACT</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -251,11 +251,12 @@ const styles = StyleSheet.create({
   },
   popiBtn: {
     marginTop: 'auto',
-    padding: SPACING.md,
+    padding: SPACING.lg,
   },
   popiText: {
-    fontSize: 12,
-    color: COLORS.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textMid,
     textDecorationLine: 'underline',
   },
 });

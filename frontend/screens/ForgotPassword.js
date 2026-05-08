@@ -10,6 +10,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendCode = async () => {
@@ -25,8 +26,30 @@ export default function ForgotPasswordScreen({ navigation }) {
     }
   };
 
+  const handleVerifyCode = async () => {
+    if (!code.trim()) return Alert.alert('Error', 'Please enter the reset code');
+    setIsLoading(true);
+    try {
+      await api.verifyResetCode(email.trim(), code.trim());
+      setStep(3); // Code is valid, move to password reset
+    } catch (e) {
+      Alert.alert('Error', e.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleResetPassword = async () => {
-    if (!code.trim() || !newPassword.trim()) return Alert.alert('Error', 'Please enter the code and a new password');
+    if (!newPassword.trim() || !confirmPassword.trim()) {
+      return Alert.alert('Error', 'Please enter and confirm your new password');
+    }
+    if (newPassword !== confirmPassword) {
+      return Alert.alert('Error', 'Passwords do not match');
+    }
+    if (newPassword.length < 6) {
+      return Alert.alert('Error', 'Password must be at least 6 characters');
+    }
+
     setIsLoading(true);
     try {
       await api.resetPassword(email.trim(), code.trim(), newPassword);
@@ -43,18 +66,20 @@ export default function ForgotPasswordScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => step === 2 ? setStep(1) : navigation.goBack()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => step > 1 ? setStep(step - 1) : navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textDark} />
         </TouchableOpacity>
 
         <View style={styles.header}>
           <Text style={styles.title}>Reset Password</Text>
           <Text style={styles.subtitle}>
-            {step === 1 ? "Enter your email and we'll send you a 6-digit reset code." : "Enter the code sent to your email and your new password."}
+            {step === 1 && "Enter your email and we'll send you a 6-digit reset code."}
+            {step === 2 && "Enter the 6-digit code sent to your email."}
+            {step === 3 && "Create a strong, new password for your account."}
           </Text>
         </View>
 
-        {step === 1 ? (
+        {step === 1 && (
           <View style={styles.form}>
             <View style={styles.inputContainer}>
               <Ionicons name="mail-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
@@ -75,7 +100,9 @@ export default function ForgotPasswordScreen({ navigation }) {
               style={{ marginTop: SPACING.lg }}
             />
           </View>
-        ) : (
+        )}
+
+        {step === 2 && (
           <View style={styles.form}>
             <View style={styles.inputContainer}>
               <Ionicons name="keypad-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
@@ -88,6 +115,17 @@ export default function ForgotPasswordScreen({ navigation }) {
                 keyboardType="number-pad"
               />
             </View>
+            <PrimaryButton
+              title={isLoading ? "Verifying..." : "Verify Code"}
+              onPress={handleVerifyCode}
+              disabled={isLoading}
+              style={{ marginTop: SPACING.lg }}
+            />
+          </View>
+        )}
+
+        {step === 3 && (
+          <View style={styles.form}>
             <View style={styles.inputContainer}>
               <Ionicons name="lock-closed-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
               <TextInput
@@ -96,6 +134,17 @@ export default function ForgotPasswordScreen({ navigation }) {
                 placeholderTextColor={COLORS.textMuted}
                 value={newPassword}
                 onChangeText={setNewPassword}
+                secureTextEntry
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm New Password"
+                placeholderTextColor={COLORS.textMuted}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
                 secureTextEntry
               />
             </View>

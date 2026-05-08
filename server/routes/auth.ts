@@ -62,6 +62,17 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
   }
 });
 
+router.post("/verify-reset-code", async (req: Request, res: Response) => {
+  const { email, code } = req.body;
+  const user = await db.queryOne("SELECT id, reset_code, reset_expires FROM users WHERE email = ?", [email]) as any;
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  if (user.reset_code !== code) return res.status(400).json({ error: "Invalid code" });
+  if (new Date(user.reset_expires) < new Date()) return res.status(400).json({ error: "Code expired" });
+
+  res.json({ message: "Code is valid" });
+});
+
 router.post("/reset-password", async (req: Request, res: Response) => {
   const { email, code, newPassword } = req.body;
   const user = await db.queryOne("SELECT id, reset_code, reset_expires FROM users WHERE email = ?", [email]) as any;

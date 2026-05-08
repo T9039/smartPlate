@@ -54,6 +54,19 @@ export const api = {
     return res.json();
   },
 
+  verifyResetCode: async (email, code) => {
+    const res = await fetch(`${API_URL}/auth/verify-reset-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Invalid code');
+    }
+    return res.json();
+  },
+
   resetPassword: async (email, code, newPassword) => {
     const res = await fetch(`${API_URL}/auth/reset-password`, {
       method: 'POST',
