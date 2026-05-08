@@ -11,6 +11,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
@@ -23,6 +24,7 @@ export default function LoginScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
     if (!email.trim() || !password.trim()) {
@@ -82,14 +84,19 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.forgotPassword}>Forgot?</Text>
               </TouchableOpacity>
             </View>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Your password"
-              placeholderTextColor={COLORS.textMuted}
-              secureTextEntry
-            />
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Your password"
+                placeholderTextColor={COLORS.textMuted}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <PrimaryButton title="Log In" onPress={handleLogin} style={styles.loginBtn} />
@@ -258,5 +265,24 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textMid,
     textDecorationLine: 'underline',
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.inputBg,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 13,
+    fontSize: 15,
+    color: COLORS.textDark,
+  },
+  eyeIcon: {
+    padding: SPACING.sm,
+    marginRight: 4,
   },
 });

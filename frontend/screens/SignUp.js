@@ -25,6 +25,7 @@ export default function SignUpScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [popiAccepted, setPopiAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignUp = () => {
     if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -76,22 +77,41 @@ export default function SignUpScreen({ navigation }) {
           {[
             { label: 'Full Name', value: fullName, setter: setFullName, placeholder: 'Jane Doe', secure: false, keyboard: 'default' },
             { label: 'Email', value: email, setter: setEmail, placeholder: 'you@email.com', secure: false, keyboard: 'email-address' },
-            { label: 'Password', value: password, setter: setPassword, placeholder: 'Min. 6 characters', secure: true, keyboard: 'default' },
-            { label: 'Confirm Password', value: confirmPassword, setter: setConfirmPassword, placeholder: 'Repeat password', secure: true, keyboard: 'default' },
+            { label: 'Password', value: password, setter: setPassword, placeholder: 'Min. 6 characters', secure: true, keyboard: 'default', toggleable: true },
+            { label: 'Confirm Password', value: confirmPassword, setter: setConfirmPassword, placeholder: 'Repeat password', secure: true, keyboard: 'default', toggleable: true },
           ].map((field) => (
             <View key={field.label} style={styles.inputWrap}>
               <Text style={styles.inputLabel}>{field.label}</Text>
-              <TextInput
-                style={styles.input}
-                value={field.value}
-                onChangeText={field.setter}
-                placeholder={field.placeholder}
-                placeholderTextColor={COLORS.textMuted}
-                secureTextEntry={field.secure}
-                keyboardType={field.keyboard}
-                autoCapitalize={field.keyboard === 'email-address' || field.secure ? 'none' : 'words'}
-                autoCorrect={false}
-              />
+              {field.toggleable ? (
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={field.value}
+                    onChangeText={field.setter}
+                    placeholder={field.placeholder}
+                    placeholderTextColor={COLORS.textMuted}
+                    secureTextEntry={!showPassword}
+                    keyboardType={field.keyboard}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                    <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={COLORS.textMuted} />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TextInput
+                  style={styles.input}
+                  value={field.value}
+                  onChangeText={field.setter}
+                  placeholder={field.placeholder}
+                  placeholderTextColor={COLORS.textMuted}
+                  secureTextEntry={field.secure}
+                  keyboardType={field.keyboard}
+                  autoCapitalize={field.keyboard === 'email-address' || field.secure ? 'none' : 'words'}
+                  autoCorrect={false}
+                />
+              )}
             </View>
           ))}
 
@@ -232,5 +252,24 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textMid,
     textDecorationLine: 'underline',
+  },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.inputBg,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 13,
+    fontSize: 15,
+    color: COLORS.textDark,
+  },
+  eyeIcon: {
+    padding: SPACING.sm,
+    marginRight: 4,
   },
 });

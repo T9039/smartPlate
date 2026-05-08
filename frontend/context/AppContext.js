@@ -98,6 +98,34 @@ export function AppProvider({ children }) {
     }
   };
 
+  const loadNotifications = async () => {
+    try {
+      const notifsData = await api.getNotifications();
+      setNotifications(notifsData);
+    } catch (e) { console.warn('Failed to fetch notifications', e); }
+  };
+
+  const addNotification = async (title, message, type = 'info') => {
+    try {
+      const newNotif = await api.createNotification(title, message, type);
+      setNotifications(prev => [newNotif, ...prev]);
+    } catch (e) { console.warn('Failed to add notification', e); }
+  };
+
+  const markNotificationRead = async (id) => {
+    try {
+      await api.markNotificationRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (e) { console.warn('Failed to mark notification read', e); }
+  };
+
+  const deleteNotification = async (id) => {
+    try {
+      await api.deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (e) { console.warn('Failed to delete notification', e); }
+  };
+
   const fetchRecipes = async () => {
     try {
       const recipesData = await api.getRecipes();
@@ -119,6 +147,7 @@ export function AppProvider({ children }) {
         if (prev.find(r => r.id === id)) return prev;
         return [recipeData, ...prev];
       });
+      addNotification('Recipe Saved', `You saved ${recipeData.title} to your recipes!`, 'success');
       toast('Recipe saved!', 'success');
     } catch (e) { console.warn('Failed to save recipe', e); }
   };
@@ -215,6 +244,7 @@ export function AppProvider({ children }) {
       };
       const addedItem = await api.addInventoryItem(dbItem);
       setInventory((prev) => [addedItem, ...prev]);
+      addNotification('Item Added', `${item.name} was added to your inventory.`, 'success');
       toast('Item added', 'success');
     } catch (e) {
       console.error('API Error adding inventory', e);
@@ -252,6 +282,7 @@ export function AppProvider({ children }) {
         
         // Update local state to mark as used (instead of deleting)
         setInventory(prev => prev.map(i => i.id.toString() === id.toString() ? { ...i, usedRecently: true } : i));
+        addNotification('Item Used', `You completely used up ${item.name}! Great job reducing waste.`, 'success');
       }
     } catch (e) {
       console.error(e);
@@ -273,6 +304,7 @@ export function AppProvider({ children }) {
       setInventory((prev) => prev.filter((i) => i.id !== item.id));
       setDonationHamper((prev) => [...prev, hamperItem]);
       setImpact((prev) => ({ ...prev, donationsMade: prev.donationsMade + 1 }));
+      addNotification('Added to Hamper', `${item.name} is ready to be donated!`, 'info');
     } catch (e) {
       console.warn('Error adding to donation hamper:', e?.message);
     }
@@ -325,6 +357,7 @@ export function AppProvider({ children }) {
       }
       return updated;
     });
+    addNotification('Request Sent', `You requested ${itemName} from a community drop-off.`, 'info');
   };
 
   const acceptIncomingRequest = (reqId) => {
@@ -405,6 +438,7 @@ export function AppProvider({ children }) {
         adminRemoveEntry, adminFlagEntry, adminUnflagEntry,
         adminResolveComplaint,
         fetchRecipes, fetchSavedRecipes, saveRecipe, unsaveRecipe,
+        loadNotifications, addNotification, markNotificationRead, deleteNotification,
       }}
     >
       {children}

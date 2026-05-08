@@ -11,7 +11,7 @@ import { getValidIcon } from '../data/mockData';
 import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 
 export default function HomeScreen({ navigation }) {
-  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests, notifications } = useAppContext();
+  const { user, impact, inventory, challengeItemsUsedToday, unlockedRewards, challengeTiers, incomingRequests, notifications, markNotificationRead, deleteNotification } = useAppContext();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
@@ -37,9 +37,22 @@ export default function HomeScreen({ navigation }) {
   const allNotifications = [
     ...(incomingRequests || []).filter((r) => r.status === 'pending').map((r) => ({
       id: r.id, title: `Item Request from ${r.fromUser}`,
-      message: `They want "${r.requestedItem}" from your donation hamper.`, time: 'Today', type: 'request',
+      message: `They want "${r.requestedItem}" from your donation hamper.`, time: 'Today', type: 'request', isRead: false,
     })),
-    ...(notifications || []),
+    ...(notifications || []).map(n => {
+      // Basic time formatting
+      let timeStr = 'Just now';
+      if (n.createdAt) {
+        const diff = Date.now() - new Date(n.createdAt).getTime();
+        const mins = Math.floor(diff / 60000);
+        const hours = Math.floor(mins / 60);
+        const days = Math.floor(hours / 24);
+        if (days > 0) timeStr = `${days}d ago`;
+        else if (hours > 0) timeStr = `${hours}h ago`;
+        else if (mins > 0) timeStr = `${mins}m ago`;
+      }
+      return { ...n, time: timeStr };
+    }),
   ];
 
   const handleNotificationPress = (item) => {
@@ -54,7 +67,17 @@ export default function HomeScreen({ navigation }) {
     else if (title.includes('recipe') || message.includes('recipe')) targetTab = 'Recipes';
     else if (title.includes('donat') || message.includes('donat') || item.type === 'success') targetTab = 'Donations';
 
+    if (item.id && !item.isRead && item.type !== 'request') {
+      markNotificationRead(item.id);
+    }
+
     navigation.navigate(targetTab);
+  };
+
+  const handleRemoveNotification = (item) => {
+    if (item.type !== 'request') {
+      deleteNotification(item.id);
+    }
   };
 
   return (
@@ -152,14 +175,14 @@ export default function HomeScreen({ navigation }) {
       <BottomSheetModal visible={notifVisible} onClose={() => setNotifVisible(false)} title="Notifications">
         <FlatList
               data={allNotifications}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => item.id?.toString() || index.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity 
-                  style={styles.notifItem} 
+                  style={[styles.notifItem, item.isRead && styles.notifItemRead]} 
                   activeOpacity={0.7} 
                   onPress={() => handleNotificationPress(item)}
                 >
-                  <View style={styles.notifIconWrap}>
+                  <View style={[styles.notifIconWrap, item.isRead && { opacity: 0.6 }]}>
                     <Ionicons 
                       name={item.type === 'warning' ? 'warning-outline' : item.type === 'success' ? 'checkmark-circle-outline' : item.type === 'request' ? 'mail-outline' : 'information-circle-outline'} 
                       size={24} 
@@ -167,13 +190,23 @@ export default function HomeScreen({ navigation }) {
                     />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.notifItemTitle}>{item.title}</Text>
-                    <Text style={styles.notifItemMsg}>{item.message}</Text>
-                    <Text style={styles.notifItemTime}>{item.time}</Text>
+                    <Text style={[styles.notifItemTitle, item.isRead && { color: C.textMid, fontWeight: '500' }]}>{item.title}</Text>
+                    <Text style={[styles.notifItemMsg, item.isRead && { color: C.textMuted }]}>{item.message}</Text>
+                    <Text style={[styles.notifItemTime, item.isRead && { color: C.textMuted }]}>{item.time}</Text>
                   </View>
+                  {item.type !== 'request' && (
+                    <TouchableOpacity onPress={() => handleRemoveNotification(item)} style={styles.notifCloseBtn}>
+                      <Ionicons name="close" size={20} color={C.textMuted} />
+                    </TouchableOpacity>
+                  )}
                 </TouchableOpacity>
               )}
               ItemSeparatorComponent={() => <View style={styles.notifSep} />}
+              ListEmptyComponent={() => (
+                <View style={{ padding: SPACING.xl, alignItems: 'center' }}>
+                  <Text style={{ color: C.textMuted }}>No new notifications.</Text>
+                </View>
+              )}
             />
       </BottomSheetModal>
     </View>
@@ -256,9 +289,11 @@ const makeStyles = (C) => StyleSheet.create({
   alertBtn: { backgroundColor: C.warning, borderRadius: RADIUS.sm, paddingHorizontal: 12, paddingVertical: 7 },
   alertBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   notifItem: { flexDirection: 'row', padding: SPACING.md, gap: SPACING.md, alignItems: 'flex-start' },
+  notifItemRead: { opacity: 0.65, backgroundColor: '#F9FAFB' },
   notifIconWrap: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center' },
-  notifItemTitle: { fontSize: 14, fontWeight: '600', color: C.textDark },
-  notifItemMsg: { fontSize: 13, color: C.textLight, marginTop: 2, lineHeight: 18 },
-  notifItemTime: { fontSize: 11, color: C.textMuted, marginTop: 4 },
+  notifItemTitle: { fontSize: 14, fontWeight: '700', color: C.textDark },
+  notifItemMsg: { fontSize: 13, color: C.textDark, marginTop: 2, lineHeight: 18 },
+  notifItemTime: { fontSize: 11, color: C.primary, marginTop: 4, fontWeight: '600' },
+  notifCloseBtn: { padding: 4 },
   notifSep: { height: 1, backgroundColor: C.divider, marginLeft: SPACING.lg + 36 + SPACING.md },
 });

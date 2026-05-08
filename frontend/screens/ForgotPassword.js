@@ -12,6 +12,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSendCode = async () => {
     if (!email.trim()) return Alert.alert('Error', 'Please enter your email address');
@@ -134,8 +135,11 @@ export default function ForgotPasswordScreen({ navigation }) {
                 placeholderTextColor={COLORS.textMuted}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
             </View>
             <View style={styles.inputContainer}>
               <Ionicons name="lock-closed-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
@@ -145,8 +149,11 @@ export default function ForgotPasswordScreen({ navigation }) {
                 placeholderTextColor={COLORS.textMuted}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
               />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
             </View>
             <PrimaryButton
               title={isLoading ? "Resetting..." : "Set New Password"}
@@ -182,4 +189,8 @@ const styles = StyleSheet.create({
   },
   inputIcon: { marginRight: SPACING.md },
   input: { flex: 1, height: 50, fontSize: 16, color: COLORS.textDark },
+  eyeIcon: {
+    padding: SPACING.xs,
+    marginLeft: SPACING.xs,
+  },
 });

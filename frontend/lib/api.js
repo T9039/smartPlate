@@ -249,4 +249,21 @@ export const api = {
     if (!res.ok) throw new Error('Failed to flag inventory');
     return res.json();
   },
+
+  // Notifications
+  getNotifications: async () => {
+    return fetchAPI('/notifications', { method: 'GET' });
+  },
+  markNotificationRead: async (id) => {
+    return fetchAPI(`/notifications/${id}/read`, { method: 'PUT' });
+  },
+  deleteNotification: async (id) => {
+    return fetchAPI(`/notifications/${id}`, { method: 'DELETE' });
+  },
+  createNotification: async (title, message, type = 'info') => {
+    return fetchAPI('/notifications', {
+      method: 'POST',
+      body: JSON.stringify({ title, message, type }),
+    });
+  },
 };
