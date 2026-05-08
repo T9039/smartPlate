@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../../context/AppContext';
+import { LineChart, PieChart } from 'react-native-gifted-charts';
 import { SPACING, RADIUS, SHADOW } from '../../styles/theme';
 
 const A = {
@@ -41,40 +42,7 @@ function BigStat({ label, value, icon, color, sub }) {
   );
 }
 
-function BarRow({ label, savedVal, wastedVal, maxVal }) {
-  const savedWidth = Math.max((savedVal / maxVal) * 100, 2);
-  const wastedWidth = Math.max((wastedVal / maxVal) * 100, 2);
-  return (
-    <View style={styles.barRow}>
-      <Text style={styles.barLabel}>{label}</Text>
-      <View style={styles.barTracks}>
-        <View style={styles.barTrack}>
-          <View style={[styles.barFillSaved, { width: `${savedWidth}%` }]} />
-        </View>
-        <View style={styles.barTrack}>
-          <View style={[styles.barFillWasted, { width: `${wastedWidth}%` }]} />
-        </View>
-      </View>
-      <View style={styles.barValues}>
-        <Text style={[styles.barValue, { color: A.success }]}>{savedVal} kg</Text>
-        <Text style={[styles.barValue, { color: A.danger }]}>{wastedVal} kg</Text>
-      </View>
-    </View>
-  );
-}
 
-function WeekBar({ week, saved, wasted, donations, maxSaved }) {
-  const barH = Math.max((saved / maxSaved) * 80, 4);
-  return (
-    <View style={styles.weekCol}>
-      <Text style={styles.weekDonCount}>{donations}</Text>
-      <View style={styles.weekBarWrap}>
-        <View style={[styles.weekBarSaved, { height: barH }]} />
-      </View>
-      <Text style={styles.weekLabel}>{week}</Text>
-    </View>
-  );
-}
 
 export default function AdminAnalytics() {
   const { adminStats } = useAppContext();
@@ -136,30 +104,75 @@ export default function AdminAnalytics() {
           <Text style={styles.rateNote}>Based on {data.totalFoodSaved + data.totalFoodWasted} kg total food tracked</Text>
         </View>
 
-        {/* Weekly trend */}
-        <SectionTitle title="Weekly Trend (Items Saved)" />
+        {/* Weekly Trend */}
+        <SectionTitle title="Weekly Trend (Items Saved vs Wasted)" />
         <View style={styles.card}>
           <View style={styles.weekLegend}>
-            <View style={styles.legendDot} /><Text style={styles.legendText}>Saved (kg)</Text>
-            <View style={[styles.legendDot, { backgroundColor: A.info, marginLeft: SPACING.md }]} /><Text style={styles.legendText}>Donations</Text>
+            <View style={styles.legendDot} /><Text style={styles.legendText}>Saved</Text>
+            <View style={[styles.legendDot, { backgroundColor: A.danger, marginLeft: SPACING.md }]} /><Text style={styles.legendText}>Wasted</Text>
           </View>
-          <View style={styles.weekBarsRow}>
-            {data.weeklyTrend.map((w) => (
-              <WeekBar key={w.week} {...w} maxSaved={maxSaved} />
-            ))}
+          <View style={{ marginTop: SPACING.md, alignItems: 'center' }}>
+            <LineChart
+              data={data.weeklyTrend.map(w => ({ value: w.saved, label: w.week }))}
+              data2={data.weeklyTrend.map(w => ({ value: w.wasted }))}
+              color1={A.success}
+              color2={A.danger}
+              dataPointsColor1={A.success}
+              dataPointsColor2={A.danger}
+              spacing={60}
+              initialSpacing={20}
+              yAxisTextStyle={{ color: A.textMuted, fontSize: 10 }}
+              xAxisLabelTextStyle={{ color: A.textLight, fontSize: 10, width: 80, marginLeft: -15 }}
+              hideRules
+              yAxisColor={A.border}
+              xAxisColor={A.border}
+              thickness1={3}
+              thickness2={3}
+              curved
+              isAnimated
+              height={140}
+            />
           </View>
         </View>
 
-        {/* Category breakdown */}
-        <SectionTitle title="Category Breakdown" />
-        <View style={styles.card}>
-          <View style={styles.barLegend}>
-            <View style={styles.legendDotGreen} /><Text style={styles.legendText}>Saved</Text>
-            <View style={[styles.legendDotGreen, { backgroundColor: A.danger, marginLeft: SPACING.md }]} /><Text style={styles.legendText}>Wasted</Text>
+        {/* Category Breakdown */}
+        <SectionTitle title="Category Breakdown (Items Saved)" />
+        <View style={[styles.card, { alignItems: 'center', paddingVertical: SPACING.xl }]}>
+          {data.categoryBreakdown.length > 0 ? (
+            <PieChart
+              data={data.categoryBreakdown.map((cat, idx) => {
+                const colors = [A.primaryLight, A.info, A.warning, A.danger, '#9b59b6', '#34495e'];
+                return { value: cat.saved || 1, color: colors[idx % colors.length], text: cat.category };
+              })}
+              donut
+              showText
+              textColor="#fff"
+              radius={100}
+              innerRadius={55}
+              textSize={12}
+              centerLabelComponent={() => {
+                return (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22, fontWeight: '800', color: A.textDark }}>{data.totalFoodSaved}</Text>
+                    <Text style={{ fontSize: 10, color: A.textLight }}>Saved</Text>
+                  </View>
+                );
+              }}
+            />
+          ) : (
+            <Text style={{ color: A.textMuted }}>No category data yet.</Text>
+          )}
+          <View style={styles.pieLegendWrap}>
+            {data.categoryBreakdown.map((cat, idx) => {
+              const colors = [A.primaryLight, A.info, A.warning, A.danger, '#9b59b6', '#34495e'];
+              return (
+                <View key={cat.category} style={styles.pieLegendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: colors[idx % colors.length] }]} />
+                  <Text style={styles.legendText}>{cat.category}</Text>
+                </View>
+              );
+            })}
           </View>
-          {data.categoryBreakdown.map((cat) => (
-            <BarRow key={cat.category} label={cat.category} savedVal={cat.saved} wastedVal={cat.wasted} maxVal={maxCategory} />
-          ))}
         </View>
 
         {/* Donations by location */}
@@ -244,6 +257,8 @@ const styles = StyleSheet.create({
   barValues: { flexDirection: 'row', gap: SPACING.md, marginTop: 3 },
   barValue: { fontSize: 11, fontWeight: '600' },
   barLegend: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.md },
+  pieLegendWrap: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: SPACING.lg, gap: SPACING.md },
+  pieLegendItem: { flexDirection: 'row', alignItems: 'center' },
   locRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm, gap: SPACING.sm },
   locRowBorder: { borderBottomWidth: 1, borderBottomColor: A.divider },
   locName: { fontSize: 12, color: A.textDark, fontWeight: '500', width: 110 },
