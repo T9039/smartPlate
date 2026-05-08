@@ -14,7 +14,7 @@ import { SPACING, RADIUS, SHADOW } from '../styles/theme';
 const FILTERS = ['All', 'Expiring Soon', 'Used Recently'];
 
 export default function InventoryScreen({ navigation }) {
-  const { inventory, markItemUsed, addToDonationHamper } = useAppContext();
+  const { inventory, markItemUsed, addToDonationHamper, removeFromInventory } = useAppContext();
   const { alert } = useAlert();
   const C = useColors();
   const styles = useMemo(() => makeStyles(C), [C]);
@@ -30,8 +30,15 @@ export default function InventoryScreen({ navigation }) {
 
   const filtered = useMemo(() => {
     let items = inventory;
-    if (filter === 'Expiring Soon') items = items.filter((i) => isExpiringSoon(i.expiryDate));
-    else if (filter === 'Used Recently') items = items.filter((i) => i.usedRecently);
+    if (filter === 'Expiring Soon') {
+      items = items.filter((i) => isExpiringSoon(i.expiryDate) && !i.usedRecently);
+    } else if (filter === 'Used Recently') {
+      items = items.filter((i) => i.usedRecently);
+    } else {
+      // Default 'All'
+      items = items.filter((i) => !i.usedRecently);
+    }
+    
     if (search.trim()) {
       const q = search.toLowerCase();
       items = items.filter((i) => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q));
@@ -51,6 +58,13 @@ export default function InventoryScreen({ navigation }) {
     alert('Add to donation hamper?', `Add "${item.name}" to your donation hamper? It will be removed from your inventory.`, [
       { text: 'Add to Hamper', onPress: () => { addToDonationHamper({ ...item, sourceType: 'inventory' }); } },
       { text: 'Go to Donations', onPress: () => navigation.navigate('Donations') },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const handleDelete = (item) => {
+    alert('Remove item?', `Remove "${item.name}" from your records entirely?`, [
+      { text: 'Yes, Remove', style: 'destructive', onPress: () => { removeFromInventory(item.id); } },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
@@ -113,6 +127,7 @@ export default function InventoryScreen({ navigation }) {
               onPress={() => handleItemPress(item)}
               onUseUp={() => handleUseUp(item)} 
               onDonate={() => handleDonate(item)} 
+              onDelete={() => handleDelete(item)}
             />
           ))
         )}

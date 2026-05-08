@@ -36,14 +36,6 @@ export default function LoginScreen({ navigation }) {
     login(email.trim(), password);
   };
 
-  const handleDemoLogin = () => {
-    login('demo@smartplate.com', '123456');
-  };
-
-  const handleAdminDemo = () => {
-    login('admin@smartplate.com', 'admin123');
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -83,8 +75,12 @@ export default function LoginScreen({ navigation }) {
             />
           </View>
 
-          <View style={styles.inputWrap}>
-            <Text style={styles.inputLabel}>Password</Text>
+            <View style={styles.passwordRow}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                <Text style={styles.forgotPassword}>Forgot?</Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.input}
               value={password}
@@ -96,20 +92,6 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <PrimaryButton title="Log In" onPress={handleLogin} style={styles.loginBtn} />
-
-          <View style={styles.dividerRow}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.divider} />
-          </View>
-
-          <TouchableOpacity style={styles.demoBtn} onPress={handleDemoLogin} activeOpacity={0.8}>
-            <Text style={styles.demoBtnText}>✨  Continue as Demo User</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.adminDemoBtn} onPress={handleAdminDemo} activeOpacity={0.8}>
-            <Text style={styles.adminDemoBtnText}>🛡️  Continue as Admin (Demo)</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Sign up link */}
@@ -119,6 +101,14 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.signUpLink}>Sign Up</Text>
           </TouchableOpacity>
         </View>
+
+        {/* POPI Inlined */}
+        <TouchableOpacity 
+          style={styles.popiBtn}
+          onPress={() => alert('POPI Act Compliance', 'We strictly adhere to the Protection of Personal Information Act (POPIA). Your data is encrypted, never sold to third parties, and only used to enhance your SmartPlate experience.')}
+        >
+          <Text style={styles.popiText}>POPI Inlined</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -236,6 +226,7 @@ const styles = StyleSheet.create({
   signUpRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: SPACING.xl,
   },
   signUpText: {
     fontSize: 14,
@@ -245,5 +236,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primaryMed,
     fontWeight: '700',
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 6,
+  },
+  forgotPassword: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  popiBtn: {
+    marginTop: 'auto',
+    padding: SPACING.md,
+  },
+  popiText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    textDecorationLine: 'underline',
   },
 });

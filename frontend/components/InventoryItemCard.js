@@ -5,7 +5,7 @@ import { COLORS, RADIUS, SHADOW, SPACING } from '../styles/theme';
 import { getExpiryLabel, getDaysUntilExpiry, getValidIcon } from '../data/mockData';
 import Badge from './Badge';
 
-export default function InventoryItemCard({ item, onPress, onUseUp, onDonate }) {
+export default function InventoryItemCard({ item, onPress, onUseUp, onDonate, onDelete }) {
   const days = getDaysUntilExpiry(item.expiryDate);
   const expiring = days <= 5;
   const expired = days < 0;
@@ -37,12 +37,20 @@ export default function InventoryItemCard({ item, onPress, onUseUp, onDonate }) 
         <Text style={styles.price}>R{item.price?.toFixed(2)}</Text>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.useBtn} onPress={onUseUp} activeOpacity={0.7}>
-            <Text style={styles.useBtnText}>Use Up</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.donateBtn} onPress={onDonate} activeOpacity={0.7}>
-            <Text style={styles.donateBtnText}>Donate</Text>
-          </TouchableOpacity>
+          {item.usedRecently ? (
+            <TouchableOpacity style={styles.useBtn} onPress={onDelete} activeOpacity={0.7}>
+              <Text style={styles.useBtnText}>Remove</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity style={styles.useBtn} onPress={onUseUp} activeOpacity={0.7}>
+                <Text style={styles.useBtnText}>Use Up</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.donateBtn} onPress={onDonate} activeOpacity={0.7}>
+                <Text style={styles.donateBtnText}>Donate</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </TouchableOpacity>

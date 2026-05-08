@@ -18,6 +18,8 @@ sqliteDb.exec(`
         status          TEXT    DEFAULT 'active',
         active_theme    TEXT    DEFAULT 'default',
         avatar          TEXT,
+        reset_code      TEXT,
+        reset_expires   DATETIME,
         created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -204,6 +206,8 @@ const addColumnIfMissing = (table: string, column: string, definition: string) =
 // users
 addColumnIfMissing('users', 'status',       "TEXT DEFAULT 'active'");
 addColumnIfMissing('users', 'avatar',       'TEXT');
+addColumnIfMissing('users', 'reset_code',   'TEXT');
+addColumnIfMissing('users', 'reset_expires','DATETIME');
 
 // inventory
 addColumnIfMissing('inventory', 'flagged',    'BOOLEAN DEFAULT 0');

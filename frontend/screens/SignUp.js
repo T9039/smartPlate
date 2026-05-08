@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
@@ -23,10 +24,15 @@ export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [popiAccepted, setPopiAccepted] = useState(false);
 
   const handleSignUp = () => {
     if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       alert('Missing fields', 'Please fill in all fields.');
+      return;
+    }
+    if (!popiAccepted) {
+      alert('Required', 'You must accept the POPIA data policy to create an account.');
       return;
     }
     if (!email.includes('@')) {
@@ -89,6 +95,18 @@ export default function SignUpScreen({ navigation }) {
             </View>
           ))}
 
+          {/* POPIA Checkbox */}
+          <TouchableOpacity 
+            style={styles.checkboxContainer} 
+            onPress={() => setPopiAccepted(!popiAccepted)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, popiAccepted && styles.checkboxChecked]}>
+              {popiAccepted && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <Text style={styles.checkboxLabel}>I agree to the POPIA Data Policy</Text>
+          </TouchableOpacity>
+
           <PrimaryButton title="Create Account" onPress={handleSignUp} style={styles.signUpBtn} />
         </View>
 
@@ -99,6 +117,14 @@ export default function SignUpScreen({ navigation }) {
             <Text style={styles.loginLink}>Log In</Text>
           </TouchableOpacity>
         </View>
+
+        {/* POPI Inlined */}
+        <TouchableOpacity 
+          style={styles.popiBtn}
+          onPress={() => alert('POPI Act Compliance', 'We strictly adhere to the Protection of Personal Information Act (POPIA). Your data is encrypted, never sold to third parties, and only used to enhance your SmartPlate experience.')}
+        >
+          <Text style={styles.popiText}>POPI Inlined</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -170,8 +196,40 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.textDark,
   },
-  signUpBtn: { marginTop: SPACING.sm },
-  loginRow: { flexDirection: 'row', alignItems: 'center' },
+  signUpBtn: { marginTop: SPACING.md },
+  loginRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SPACING.xl },
   loginText: { fontSize: 14, color: COLORS.textLight },
   loginLink: { fontSize: 14, color: COLORS.primaryMed, fontWeight: '700' },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    marginTop: SPACING.xs,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.sm,
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.primary,
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  popiBtn: {
+    marginTop: 'auto',
+    padding: SPACING.md,
+  },
+  popiText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    textDecorationLine: 'underline',
+  },
 });

@@ -11,6 +11,7 @@ import { COLORS, SPACING } from '../styles/theme';
 // Auth screens
 import LoginScreen from '../screens/Login';
 import SignUpScreen from '../screens/SignUp';
+import ForgotPasswordScreen from '../screens/ForgotPassword';
 
 // User screens
 import HomeScreen from '../screens/Home';
@@ -180,6 +181,7 @@ export default function AppNavigator() {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         </>
       ) : user.role === 'admin' ? (
         <Stack.Screen name="AdminTabs" component={AdminTabs} />

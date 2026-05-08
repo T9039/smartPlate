@@ -248,12 +248,15 @@ export function AppProvider({ children }) {
       const item = inventory.find(i => i.id.toString() === id.toString());
       if (item) {
         await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'consumed' });
+        await api.updateInventoryItem(id, { used_recently: true });
+        
+        // Update local state to mark as used (instead of deleting)
+        setInventory(prev => prev.map(i => i.id.toString() === id.toString() ? { ...i, usedRecently: true } : i));
       }
     } catch (e) {
       console.error(e);
     }
 
-    removeFromInventory(id);
     setImpact((prev) => ({ ...prev, itemsSaved: prev.itemsSaved + 1, moneySaved: prev.moneySaved + 20 }));
   };
 

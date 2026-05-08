@@ -16,6 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
@@ -64,6 +65,20 @@ export default function AddFoodScreen({ navigation }) {
     }
     setScannerVisible(true);
     setIsScanning(false);
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.3,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImageUrl(`data:image/jpeg;base64,${result.assets[0].base64}`);
+    }
   };
 
   const handleBarCodeScanned = async ({ type, data }) => {
@@ -235,6 +250,7 @@ export default function AddFoodScreen({ navigation }) {
           <TouchableOpacity 
             style={[styles.imagePicker, { flex: 1, marginRight: SPACING.sm, overflow: 'hidden' }, imageUrl && { padding: 0, borderWidth: 0 }]} 
             activeOpacity={0.7}
+            onPress={pickImage}
           >
             {imageUrl ? (
               <Image source={{ uri: imageUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />

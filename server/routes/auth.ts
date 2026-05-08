@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import db from "../lib/db.js";
 import { JWT_SECRET } from "../middleware/auth.js";
+import { sendResetEmail } from "../lib/mailer.js";
 
 const router = Router();
 
@@ -40,6 +41,39 @@ router.post("/login", async (req: Request, res: Response) => {
   } else {
     res.status(401).json({ error: "Invalid credentials" });
   }
+});
+
+router.post("/forgot-password", async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const user = await db.queryOne("SELECT id FROM users WHERE email = ?", [email]) as any;
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+  const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 mins
+
+  await db.query("UPDATE users SET reset_code = ?, reset_expires = ? WHERE id = ?", [code, expires, user.id]);
+
+  try {
+    await sendResetEmail(email, code);
+    res.json({ message: "Reset code sent to email" });
+  } catch (error: any) {
+    console.error("Failed to send reset email:", error);
+    res.status(500).json({ error: "Failed to send reset email. Please try again later." });
+  }
+});
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+  const { email, code, newPassword } = req.body;
+  const user = await db.queryOne("SELECT id, reset_code, reset_expires FROM users WHERE email = ?", [email]) as any;
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  if (user.reset_code !== code) return res.status(400).json({ error: "Invalid code" });
+  if (new Date(user.reset_expires) < new Date()) return res.status(400).json({ error: "Code expired" });
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await db.query("UPDATE users SET password_hash = ?, reset_code = NULL, reset_expires = NULL WHERE id = ?", [hash, user.id]);
+
+  res.json({ message: "Password reset successfully" });
 });
 
 export default router;

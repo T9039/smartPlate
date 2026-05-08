@@ -41,6 +41,32 @@ export const api = {
     return res.json();
   },
 
+  forgotPassword: async (email) => {
+    const res = await fetch(`${API_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to send reset code');
+    }
+    return res.json();
+  },
+
+  resetPassword: async (email, code, newPassword) => {
+    const res = await fetch(`${API_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to reset password');
+    }
+    return res.json();
+  },
+
   // Inventory
   getInventory: async () => {
     const res = await fetch(`${API_URL}/inventory`, { headers: defaultHeaders() });
