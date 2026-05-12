@@ -154,9 +154,9 @@ export function AppProvider({ children }) {
     } catch (e) { console.warn('Failed to delete notification', e); }
   };
 
-  const fetchRecipes = async () => {
+  const fetchRecipes = async (force = false) => {
     try {
-      const recipesData = await api.getRecipes();
+      const recipesData = await api.getRecipes(force);
       setRecipes(recipesData);
     } catch (e) { console.warn('Failed to fetch recipes', e); }
   };

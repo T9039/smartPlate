@@ -20,7 +20,7 @@ export default function RecipesScreen({ navigation }) {
   const onRefresh = async () => {
     setRefreshing(true);
     if (activeTab === 'suggestions') {
-        await fetchRecipes();
+        await fetchRecipes(true);
     } else {
         await fetchSavedRecipes();
     }

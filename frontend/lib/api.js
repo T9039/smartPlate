@@ -167,8 +167,8 @@ export const api = {
   },
 
   // AI & Notifications
-  getRecipes: async () => {
-    const res = await fetch(`${API_URL}/ai/recipes`, { headers: defaultHeaders() });
+  getRecipes: async (force = false) => {
+    const res = await fetch(`${API_URL}/ai/recipes${force ? '?force=true' : ''}`, { headers: defaultHeaders() });
     if (!res.ok) throw new Error('Failed to get recipes');
     return res.json();
   },

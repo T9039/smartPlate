@@ -6,6 +6,14 @@ import { getRecipeSuggestions, getBehavioralNudge } from "../lib/ai.js";
 const router = Router();
 
 router.get("/recipes", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  const forceRefresh = req.query.force === 'true';
+
+  const allItems = await db.query(`
+      SELECT name FROM inventory 
+      WHERE user_id = ?
+  `, [req.user.id]) as any[];
+  const allNames = allItems.map((i: any) => i.name.toLowerCase());
+
   // SQLite DATE formatting is different, we'll use a simpler approach
   const expiringItems = await db.query(`
       SELECT name FROM inventory 
@@ -21,45 +29,62 @@ router.get("/recipes", authenticateToken, async (req: AuthenticatedRequest, res:
   const expiringNames = expiringItems.map((i: any) => i.name.toLowerCase());
   
   try {
-      // 1. Try to fetch from cache globally
-      const allRecipes = await db.query(`SELECT * FROM recipes ORDER BY id DESC LIMIT 200`) as any[];
-      let matchedRecipes: any[] = [];
-      
-      for (const row of allRecipes) {
-          try {
-              const ingredients = JSON.parse(row.ingredients);
-              let matchCount = 0;
-              for (const exp of expiringNames) {
-                  if (ingredients.some((ing: any) => ing.name.toLowerCase().includes(exp))) {
-                      matchCount++;
-                  }
-              }
-              const matchPercent = expiringNames.length ? (matchCount / expiringNames.length) : 0;
-              
-              if (matchPercent >= 0.5) {
-                  matchedRecipes.push({
-                      id: row.id,
-                      title: row.title,
-                      icon: row.emoji,
-                      time: row.time,
-                      difficulty: row.difficulty,
-                      matchPercent: Math.round(matchPercent * 100),
-                      ingredients: ingredients,
-                      steps: JSON.parse(row.steps)
+      if (!forceRefresh) {
+          // 1. Try to fetch from cache globally
+          const allRecipes = await db.query(`SELECT * FROM recipes ORDER BY id DESC LIMIT 200`) as any[];
+          let matchedRecipes: any[] = [];
+          
+          for (const row of allRecipes) {
+              try {
+                  const ingredients = JSON.parse(row.ingredients);
+                  let matchCount = 0;
+                  
+                  // Update ingredient statuses based on current actual inventory
+                  const verifiedIngredients = ingredients.map((ing: any) => {
+                      const ingName = ing.name.toLowerCase();
+                      const inExpiring = expiringNames.some((exp: string) => ingName.includes(exp) || exp.includes(ingName));
+                      const inInventory = allNames.some((n: string) => ingName.includes(n) || n.includes(ingName));
+                      
+                      if (inExpiring) {
+                          matchCount++;
+                      }
+                      
+                      return {
+                          ...ing,
+                          status: inExpiring ? 'expiring' : (inInventory ? 'in-inventory' : 'missing')
+                      };
                   });
+                  
+                  const matchPercent = expiringNames.length ? (matchCount / expiringNames.length) : 0;
+                  
+                  if (matchPercent >= 0.5) {
+                      matchedRecipes.push({
+                          id: row.id,
+                          title: row.title,
+                          icon: row.emoji,
+                          time: row.time,
+                          difficulty: row.difficulty,
+                          matchPercent: Math.round(matchPercent * 100),
+                          ingredients: verifiedIngredients,
+                          steps: JSON.parse(row.steps)
+                      });
+                  }
+              } catch (err) {
+                  // Ignore malformed JSON in DB
               }
-          } catch (err) {
-              // Ignore malformed JSON in DB
           }
-      }
-      
-      // If we found enough matched recipes, return them!
-      if (matchedRecipes.length >= 3) {
-          return res.json(matchedRecipes.slice(0, 3));
+          
+          // If we found enough matched recipes, return them!
+          if (matchedRecipes.length >= 3) {
+              return res.json(matchedRecipes.slice(0, 3));
+          }
       }
 
       // 2. Otherwise, fall back to AI
-      const aiRecipes = await getRecipeSuggestions(expiringItems.map((i: any) => i.name));
+      const aiRecipes = await getRecipeSuggestions(
+          expiringItems.map((i: any) => i.name),
+          allItems.map((i: any) => i.name)
+      );
       
       // 3. Save newly generated recipes to cache
       const finalRecipes = [];

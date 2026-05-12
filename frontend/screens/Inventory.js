@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext, useColors } from '../context/AppContext';
 import { useAlert } from '../context/AlertContext';
 import { api } from '../lib/api';
-import { isExpiringSoon } from '../data/mockData';
+import { isExpiringSoon, getDaysUntilExpiry } from '../data/mockData';
 import SearchBar from '../components/SearchBar';
 import FilterChips from '../components/FilterChips';
 import InventoryItemCard from '../components/InventoryItemCard';
