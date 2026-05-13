@@ -9,7 +9,7 @@
  * Populates Demo account with extensive data to showcase all features.
  */
 
-import './lib/db.ts';
+import './lib/db.js';
 import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 
