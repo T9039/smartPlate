@@ -5,8 +5,8 @@ import { AuthenticatedRequest, authenticateToken } from "../middleware/auth.js";
 const router = Router();
 
 router.post("/", authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-  const { item_name, quantity, action } = req.body;
-  await db.query("INSERT INTO waste_logs (user_id, item_name, quantity, action) VALUES (?, ?, ?, ?)", [req.user.id, item_name, quantity, action]);
+  const { item_name, quantity, action, price } = req.body;
+  await db.query("INSERT INTO waste_logs (user_id, item_name, quantity, action, price) VALUES (?, ?, ?, ?, ?)", [req.user.id, item_name, quantity, action, price || null]);
   res.sendStatus(201);
 });
 

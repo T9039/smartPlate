@@ -11,21 +11,9 @@ router.get("/insights", async (req: AuthenticatedRequest, res: Response) => {
 
     // 1. Calculate items wasted vs consumed
     const logs = await db.query(
-      "SELECT item_name, quantity, action, logged_at FROM waste_logs WHERE user_id = ?",
+      "SELECT item_name, quantity, action, price, logged_at FROM waste_logs WHERE user_id = ?",
       [userId]
     ) as any[];
-
-    // 2. Fetch current inventory to estimate prices
-    const inventory = await db.query(
-      "SELECT name, price FROM inventory WHERE user_id = ?",
-      [userId]
-    ) as any[];
-
-    // Map prices
-    const priceMap: Record<string, number> = {};
-    inventory.forEach(i => {
-      if (i.price) priceMap[i.name.toLowerCase()] = Number(i.price);
-    });
 
     let totalMoneyWasted = 0;
     const consumedCounts: Record<string, number> = {};
@@ -39,7 +27,8 @@ router.get("/insights", async (req: AuthenticatedRequest, res: Response) => {
         consumedCounts[name] = (consumedCounts[name] || 0) + qty;
       } else if (log.action === 'wasted') {
         wastedCounts[name] = (wastedCounts[name] || 0) + qty;
-        const price = priceMap[name] || 20; // fallback estimated cost
+        // Use the exactly logged price, or a fallback if it was logged before this feature was added
+        const price = Number(log.price) || 20; 
         totalMoneyWasted += (price * qty);
       }
     });

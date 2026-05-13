@@ -305,7 +305,7 @@ export function AppProvider({ children }) {
     try {
       const item = inventory.find(i => i.id.toString() === id.toString());
       if (item) {
-        await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'consumed' });
+        await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'consumed', price: item.price });
         await api.updateInventoryItem(id, { used_recently: true });
         
         // Update local state to mark as used (instead of deleting)
@@ -323,7 +323,7 @@ export function AppProvider({ children }) {
     try {
       const item = inventory.find(i => i.id.toString() === id.toString());
       if (item) {
-        await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'wasted' });
+        await api.logWasteAction({ item_name: item.name, quantity: item.quantity, action: 'wasted', price: item.price });
         await api.deleteInventoryItem(id);
         
         setInventory(prev => prev.filter(i => i.id.toString() !== id.toString()));

@@ -59,6 +59,7 @@ sqliteDb.exec(`
         quantity        REAL,
         action          TEXT    NOT NULL CHECK(action IN ('consumed', 'wasted')),
         packaging       TEXT,
+        price           REAL,
         logged_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
@@ -232,6 +233,7 @@ addColumnIfMissing('inventory', 'ecoscore',   'TEXT');
 
 // waste_logs
 addColumnIfMissing('waste_logs', 'packaging', 'TEXT');
+addColumnIfMissing('waste_logs', 'price',     'REAL');
 
 // ─── Async-compatible query helpers ───────────────────────────────────────────
 export const query = async (sql: string, params: any[] = []) => {

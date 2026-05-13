@@ -94,10 +94,36 @@ export default function AddFoodScreen({ navigation }) {
       
       if (result.status === 1 && result.product) {
         const product = result.product;
-        // Set name
-        if (product.product_name) {
-          setName(product.product_name);
+        // Parse Name, Quantity, and Unit
+        let parsedName = product.product_name || '';
+        let parsedQuantity = product.product_quantity || '';
+        let parsedUnit = product.product_quantity_unit || '';
+        
+        // 1. Extract from name if it contains size like "Coca Cola 500ml"
+        const sizeRegex = /([\d\.]+)\s*(ml|l|g|kg|oz|lb|fl oz)/i;
+        const match = parsedName.match(sizeRegex);
+        
+        if (match) {
+            if (!parsedQuantity) parsedQuantity = match[1];
+            if (!parsedUnit) parsedUnit = match[2].toLowerCase();
+            
+            // Remove the size from the name and trim trailing hyphens or commas
+            parsedName = parsedName.replace(match[0], '').trim();
+            parsedName = parsedName.replace(/[\s,-]+$/, '');
         }
+        
+        // 2. Also sometimes OpenFoodFacts gives us raw `product.quantity` like "500 g"
+        if (!parsedQuantity && product.quantity) {
+             const qMatch = product.quantity.match(sizeRegex);
+             if (qMatch) {
+                 parsedQuantity = qMatch[1];
+                 if (!parsedUnit) parsedUnit = qMatch[2].toLowerCase();
+             }
+        }
+        
+        setName(parsedName);
+        if (parsedQuantity) setQuantity(String(parsedQuantity));
+        if (parsedUnit) setUnit(parsedUnit);
         
         // Attempt to parse category
         if (product.categories) {
@@ -125,7 +151,44 @@ export default function AddFoodScreen({ navigation }) {
           else setPackaging('Other');
         }
         
-        toast(`Found: ${product.product_name}`, 'success');
+        // Attempt to fetch a common price estimate using DummyJSON (or fallback heuristic)
+        try {
+            const priceRes = await fetch(`https://dummyjson.com/products/search?q=${encodeURIComponent(parsedName.split(' ')[0])}`);
+            const priceData = await priceRes.json();
+            
+            if (priceData.products && priceData.products.length > 0) {
+                // DummyJSON prices are in USD, converting to ZAR (R) roughly x18
+                const usdPrice = priceData.products[0].price;
+                const zarPrice = Math.round(usdPrice * 18);
+                setPrice(String(zarPrice));
+            } else {
+                // Fallback heuristic based on category
+                const categoryPrices = {
+                    'Meat': 85,
+                    'Dairy': 35,
+                    'Produce': 20,
+                    'Beverages': 25,
+                    'Bakery': 18,
+                    'Pantry': 30
+                };
+                // We use the category state variable, but wait, category is updated asynchronously!
+                // So we determine the fallback category locally.
+                let catFallback = 'Pantry';
+                if (product.categories) {
+                    const lowerCats = product.categories.toLowerCase();
+                    if (lowerCats.includes('dairy') || lowerCats.includes('milk') || lowerCats.includes('cheese')) catFallback = 'Dairy';
+                    else if (lowerCats.includes('meat') || lowerCats.includes('chicken') || lowerCats.includes('beef')) catFallback = 'Meat';
+                    else if (lowerCats.includes('fruit') || lowerCats.includes('vegetable')) catFallback = 'Produce';
+                    else if (lowerCats.includes('beverage') || lowerCats.includes('drink')) catFallback = 'Beverages';
+                    else if (lowerCats.includes('bakery') || lowerCats.includes('bread')) catFallback = 'Bakery';
+                }
+                setPrice(String(categoryPrices[catFallback]));
+            }
+        } catch (e) {
+            console.warn("Could not fetch common price", e);
+        }
+        
+        toast(`Found: ${parsedName}`, 'success');
       } else {
         toast('Product not found in database.', 'warning');
       }

@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS waste_logs (
     item_name       TEXT    NOT NULL,
     quantity        REAL,
     action          TEXT    NOT NULL CHECK(action IN ('consumed', 'wasted')),
+    price           REAL,
     logged_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
