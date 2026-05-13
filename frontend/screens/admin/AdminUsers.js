@@ -25,7 +25,7 @@ export default function AdminUsers() {
   const [filter, setFilter] = useState('All');
 
   const filtered = useMemo(() => {
-    let users = allUsers;
+    let users = [...allUsers];
     if (filter === 'Active') users = users.filter((u) => u.status === 'active');
     else if (filter === 'Suspended') users = users.filter((u) => u.status === 'suspended');
     if (search.trim()) {

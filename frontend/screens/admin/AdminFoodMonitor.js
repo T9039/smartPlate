@@ -31,7 +31,7 @@ export default function AdminFoodMonitor() {
   const [flagReason, setFlagReason] = useState('');
 
   const filtered = useMemo(() => {
-    let entries = allInventoryEntries;
+    let entries = [...allInventoryEntries];
     if (filter === 'Flagged') entries = entries.filter((e) => e.flagged);
     else if (filter === 'Clean') entries = entries.filter((e) => !e.flagged);
     if (search.trim()) {
