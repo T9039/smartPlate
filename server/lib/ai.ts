@@ -155,22 +155,58 @@ export async function getFoodPreservationTips(itemName: string) {
       "funFact": string // A very short fun fact about preserving this food
     }`;
 
-    const response = await genAI.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    storageTip: { type: Type.STRING },
-                    shelfLife: { type: Type.STRING },
-                    funFact: { type: Type.STRING }
-                },
-                required: ["storageTip", "shelfLife", "funFact"]
+    try {
+        const response = await genAI.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        storageTip: { type: Type.STRING },
+                        shelfLife: { type: Type.STRING },
+                        funFact: { type: Type.STRING }
+                    },
+                    required: ["storageTip", "shelfLife", "funFact"]
+                }
+            }
+        });
+        return JSON.parse(response.text || "{}");
+    } catch (e) {
+        console.warn(`AI failed for storage tips on ${itemName}. Using fallback dictionary.`, e);
+        
+        const lowerName = itemName.toLowerCase();
+        
+        // Comprehensive fallback dictionary for common groceries
+        const fallbacks: Record<string, any> = {
+            'tomato': { storageTip: "Store at room temperature away from direct sunlight. Do not refrigerate until cut.", shelfLife: "1-2 weeks on counter", funFact: "Refrigerating tomatoes actually destroys their flavor-producing enzymes!" },
+            'bread': { storageTip: "Store in a cool, dark place in a paper bag or bread box. Freeze for long-term storage.", shelfLife: "5-7 days in pantry", funFact: "Storing bread in the fridge actually makes it go stale faster!" },
+            'milk': { storageTip: "Store in the back of the fridge where it's coldest, not in the door.", shelfLife: "5-7 days after opening", funFact: "Milk can absorb flavors from other foods in the fridge." },
+            'egg': { storageTip: "Keep in their original carton on an inside shelf of the fridge.", shelfLife: "3-5 weeks", funFact: "The carton prevents eggs from absorbing strong odors." },
+            'chicken': { storageTip: "Store on the bottom shelf of the fridge to prevent cross-contamination.", shelfLife: "1-2 days in fridge", funFact: "You can freeze raw chicken for up to 9 months safely." },
+            'spinach': { storageTip: "Wrap in a paper towel and store in a plastic bag or container in the crisper drawer.", shelfLife: "5-7 days", funFact: "Paper towels absorb excess moisture, which is the main cause of slimy spinach." },
+            'avocado': { storageTip: "Leave on the counter to ripen. Once ripe, move to the fridge to pause ripening.", shelfLife: "3-4 days in fridge", funFact: "You can freeze mashed avocado with a squeeze of lemon juice." },
+            'rice': { storageTip: "Store in an airtight container in a cool, dry place.", shelfLife: "Indefinite (white), 6 months (brown)", funFact: "Brown rice goes bad faster because of the natural oils in the bran layer." },
+            'cheese': { storageTip: "Wrap tightly in wax or parchment paper, then loosely in plastic.", shelfLife: "3-6 weeks depending on hardness", funFact: "Cheese needs to breathe to prevent ammonia buildup." },
+            'potato': { storageTip: "Store in a cool, dark, and well-ventilated place. Keep away from onions.", shelfLife: "1-2 months", funFact: "Onions release gases that make potatoes sprout faster." },
+            'onion': { storageTip: "Store in a cool, dry, dark place with good ventilation.", shelfLife: "1-2 months", funFact: "Don't store onions in plastic bags; lack of air circulation reduces their shelf life." },
+            'banana': { storageTip: "Keep at room temperature. Wrap the stems in plastic wrap to slow ripening.", shelfLife: "2-5 days on counter", funFact: "Bananas release ethylene gas from their stems, which causes ripening." },
+            'apple': { storageTip: "Store in the crisper drawer of your fridge.", shelfLife: "1-2 months in fridge", funFact: "Apples release ethylene gas that can cause nearby vegetables to spoil faster." },
+            'berry': { storageTip: "Don't wash until right before eating. Store in a breathable container.", shelfLife: "3-7 days in fridge", funFact: "A quick vinegar wash before storing can kill mold spores and double their life!" }
+        };
+        
+        for (const [key, data] of Object.entries(fallbacks)) {
+            if (lowerName.includes(key)) {
+                return data;
             }
         }
-    });
-
-    return JSON.parse(response.text || "{}");
+        
+        // Generic fallback if not in dictionary
+        return {
+            storageTip: "Store in a cool, dry place or refrigerate if perishable.",
+            shelfLife: "Check packaging or inspect visually",
+            funFact: "Proper food storage is the #1 way to reduce household food waste."
+        };
+    }
 }

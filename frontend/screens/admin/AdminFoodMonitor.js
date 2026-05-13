@@ -92,12 +92,12 @@ export default function AdminFoodMonitor() {
                 <View style={{ flex: 1 }}>
                   <View style={styles.entryNameRow}>
                     <Text style={styles.entryName}>{entry.name}</Text>
-                    {entry.flagged && (
+                    {!!entry.flagged && (
                       <View style={styles.flaggedBadge}><Text style={styles.flaggedBadgeText}><Ionicons name="warning" size={12} /> Flagged</Text></View>
                     )}
                   </View>
                   <Text style={styles.entryMeta}>By {entry.userName} · {entry.category} · {entry.addedDate}</Text>
-                  {entry.flagged && entry.flagReason && (
+                  {!!entry.flagged && entry.flagReason && (
                     <Text style={styles.flagReason}>Reason: {entry.flagReason}</Text>
                   )}
                 </View>

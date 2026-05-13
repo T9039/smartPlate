@@ -126,7 +126,7 @@ export default function AdminDashboard({ navigation }) {
                 <Text style={styles.recentName}>{entry.name}</Text>
                 <Text style={styles.recentMeta}>{entry.userName} · {entry.addedDate}</Text>
               </View>
-              {entry.flagged && (
+              {!!entry.flagged && (
                 <View style={styles.flaggedBadge}>
                   <Text style={styles.flaggedBadgeText}>Flagged</Text>
                 </View>
